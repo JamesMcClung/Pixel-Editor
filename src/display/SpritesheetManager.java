@@ -204,7 +204,7 @@ public class SpritesheetManager extends JPanel {
 			addMouseListener(this);
 		}
 		
-		private Color highlightColor = new Color(200, 200, 0, 64);
+		private Color highlightColor = new Color(200, 170, 0, 64);
 		
 		@Override
 		public void paintComponent(Graphics g) {
@@ -218,7 +218,7 @@ public class SpritesheetManager extends JPanel {
 			Point loc = new Point();
 			
 			// render sheet
-			currentSheet.renderAt(g2, loc, size);
+			currentSheet.renderAt(g2, loc, size, Layer.RENDER_WHITE);
 			currentSheet.renderSpriteHighlight(g2, loc, size, highlightColor);
 			currentSheet.drawBoundingBox(g2, loc, size);
 		}
@@ -251,6 +251,19 @@ public class SpritesheetManager extends JPanel {
 		public void mouseEntered(MouseEvent e) { }
 		@Override
 		public void mouseExited(MouseEvent e) { }
+	}
+
+
+
+	public void restoreState(SaveableState state) {
+		if (state == null)
+			return;
+		setCurrentSheet(state.ss());
+		currentSheet.setSpriteIndex(state.spriteIndex());
+		Dimension spriteSize = state.layers()[0].getSize();
+		currentSheet.setSpriteDim(spriteSize);
+		setTextSpriteDim(spriteSize);
+		repaintPreview();
 	}
 
 }

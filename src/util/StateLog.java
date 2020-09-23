@@ -28,6 +28,10 @@ public class StateLog<T> {
 		return states.get(currentState);
 	}
 	
+	/**
+	 * If the log has a previous state, goes back to that and returns it. Otherwise returns null.
+	 * @return state after undoing
+	 */
 	public T undo() {
 		if (canUndo()) {
 			currentState--;
@@ -36,6 +40,10 @@ public class StateLog<T> {
 		return null;
 	}
 	
+	/**
+	 * If the log has a next state, goes to that and returns it. Otherwise returns null.
+	 * @return state after redoing
+	 */
 	public T redo() {
 		if (canRedo()) {
 			currentState++;

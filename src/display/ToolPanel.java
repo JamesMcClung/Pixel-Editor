@@ -116,8 +116,9 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 			app.saveState();
 			break;
 		case Tool.DO_NOTHING:
-			break;
+			return;
 		}
+		app.updateEnableds();
 	}
 	
 

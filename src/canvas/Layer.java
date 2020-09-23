@@ -15,8 +15,9 @@ import util.Util;
 public class Layer {
 	
 	public static final int RENDER_TRANSPARENT = 0;
-	public static final int RENDER_OPAQUE = 1;
-//	public static final int RENDER_GRID = 2; TODO
+	public static final int RENDER_TILES = 1;
+	public static final int RENDER_WHITE = 2;
+//	public static final int RENDER_GRID = 3; TODO
 	
 	public static final int maxNumSaveStates = 100;
 	
@@ -107,39 +108,33 @@ public class Layer {
 	 * Sets the layer to the given image. 
 	 */
 	public void setImage(BufferedImage image) {
-		image.setData(image.getData());
+		this.image.setData(image.getData());
 	}
 	
 	
 	// Rendering methods 
 	
-	/**
-	 * Draws the image scaled and moved to fit within the rectangle specified by loc and size
-	 * @param g graphics to draw on
-	 * @param loc top-left pixel of image when drawn
-	 * @param size size of image when drawn, in pixels
-	 */
-	public void renderAt(Graphics2D g, Point loc, Dimension size) {
-		renderAt(g, loc, size, RENDER_TRANSPARENT);
-	}
-	
 	// slight optimization to prevent generation of new Paint objects every time
-	private static final Dimension backgroundTileDim = new Dimension(1, 1);
+	private final Dimension backgroundTileDim = new Dimension(1, 1); // why does app break if this is static?
 	private Cache<Dimension, Paint> backgroundPaint = new Cache<>(Util::getPaint);
 	
 	/**
-	 * Does same thing as {@link Layer#renderAt}, but draws background depending on specified style.
+	 * Draws the image scaled and moved to fit within the rectangle specified by loc and size, including a background depending on specified style.
 	 * @param g graphics to draw on
 	 * @param loc top-left pixel of image when drawn
 	 * @param size size of image when drawn, in pixels
-	 * @param style either {@link #RENDER_OPAQUE} or {@link #RENDER_TRANSPARENT}.
+	 * @param style either {@link #RENDER_TILES}, {@link #RENDER_WHITE}, or {@link #RENDER_TRANSPARENT}.
 	 */
 	public void renderAt(Graphics2D g, Point loc, Dimension size, int style) {
 		g = (Graphics2D) g.create();
 		g.transform(getTransform(loc, size));
 		switch(style) {
-		case RENDER_OPAQUE:
+		case RENDER_TILES:
 			g.setPaint(backgroundPaint.get(backgroundTileDim));
+			g.fillRect(0, 0, getWidth(), getHeight());
+			break;
+		case RENDER_WHITE:
+			g.setColor(Color.WHITE);
 			g.fillRect(0, 0, getWidth(), getHeight());
 			break;
 		case RENDER_TRANSPARENT:
@@ -179,6 +174,10 @@ public class Layer {
 		float scaley = size.height / (float) getHeight();
 		float scale = Math.min(scalex, scaley);
 		return new AffineTransform(scale, 0, 0, scale, loc.x, loc.y);
+	}
+	
+	public Dimension getSize() {
+		return new Dimension(getWidth(), getHeight());
 	}
 	 
 	

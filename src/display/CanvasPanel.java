@@ -21,19 +21,23 @@ public class CanvasPanel extends JPanel {
 	private static final long serialVersionUID = 7046692110388368464L;
 	
 	public static final int width = 500, height = 500;
+	public static final int initialRenderStyle = Layer.RENDER_TILES;
 	
 	
 	// constructors
 
-	public CanvasPanel() {
+	public CanvasPanel(App app) {
 		this.setPreferredSize(new Dimension(width, height));
+		this.app = app;
 	}
 	
 	
 	// fields
 	
+	private final App app;
+	
 	private List<Layer> layers = new ArrayList<>();
-	private int renderStyle;
+	private int renderStyle = initialRenderStyle;
 	
 	
 	// methods
@@ -78,9 +82,12 @@ public class CanvasPanel extends JPanel {
 		var g2 = (Graphics2D) g;
 		var loc = new Point(); // draw at 0,0 in panel
 		var size = getSize();
-		for (Layer l : layers) { // render all layers, bottom to top
-			l.renderAt(g2, loc, size, renderStyle);
-		}
+		
+		// render all layers, bottom to top
+		if (layers.size() > 0)
+			layers.get(0).renderAt(g2, loc, size, renderStyle);
+		for (int i = 1; i < layers.size(); i++)
+			layers.get(i).renderAt(g2, loc, size, Layer.RENDER_TRANSPARENT);
 		
 		// draw box around top layer
 		getTopLayer().drawBoundingBox(g2, loc, size);
@@ -119,6 +126,6 @@ public class CanvasPanel extends JPanel {
 		BufferedImage[] stateImages = new BufferedImage[layers.size()];
 		for (int i = 0; i < stateLayers.length; i++)
 			stateImages[i] = Util.deepCopy(stateLayers[i].getImage());
-		return new SaveableState(stateLayers, stateImages);
+		return new SaveableState(stateLayers, stateImages, app.getSpritesheet(), app.getSpritesheet().getActiveSpriteIndex());
 	}
 }

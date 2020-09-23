@@ -88,10 +88,19 @@ public class Spritesheet extends Layer {
 		return new Rectangle(getSSDim()).contains(p);
 	}
 	
+	/**
+	 * Draws a solid square around the current active sprite.
+	 * @param g graphics to draw on
+	 * @param loc top left corner of valid drawing area
+	 * @param size dimension of valid drawing area
+	 * @param highlightColor color to use
+	 */
 	public void renderSpriteHighlight(Graphics2D g, Point loc, Dimension size, Color highlightColor) {
+		g = (Graphics2D) g.create();
 		g.transform(getTransform(loc, size));
 		g.setColor(highlightColor);
 		g.fill(getSpriteBounds(getActiveSpriteIndex()));
+		g.dispose();
 	}
 	
 	public Rectangle getSpriteBounds(Point spriteIndex) {
@@ -153,6 +162,10 @@ public class Spritesheet extends Layer {
 	
 	public Point getActiveSpriteIndex() {
 		return new Point(activeSpriteIndex);
+	}
+
+	public void setSpriteIndex(Point spriteIndex) {
+		this.activeSpriteIndex.setLocation(spriteIndex);
 	}
 	
 	

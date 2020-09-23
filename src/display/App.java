@@ -83,7 +83,7 @@ public class App {
 		spritesheetManager = new SpritesheetManager(this);
 		colorPanel = new ColorPanel();
 		toolPanel = new ToolPanel(this);
-		canvasPanel = new CanvasPanel();
+		canvasPanel = new CanvasPanel(this);
 		
 		GBC.addComp(frame::add, 0, 0, spritesheetManager, new GBC().dim(2, 1).weight(1, 0).fill(GBC.BOTH).insets(pad, hpad, hpad, 0), BorderFactory.createRaisedSoftBevelBorder());
 		GBC.addComp(frame::add, 2, 0, colorPanel, new GBC().fill(GBC.BOTH).insets(pad, 0, hpad, hpad), BorderFactory.createRaisedSoftBevelBorder());
@@ -126,6 +126,7 @@ public class App {
 	// State Saving
 	public static final int maxNumStates = 100;
 	private final StateLog<SaveableState> statelog;
+	private SaveableState transientState = null; // not saved to the log unless an edit is made; represents the initial state of a layer before edits are made
 	
 	public boolean canUndo() {
 		return statelog.canUndo();
@@ -135,20 +136,32 @@ public class App {
 	}
 	public void undo() {
 		// no need to check if it can undo, because restoreState ignores nulls
-		canvasPanel.restoreState(statelog.undo());
-		updateEnableds();
+		restoreState(statelog.undo());
 	}
 	public void redo() {
 		// no need to check if it can redo, because restoreState ignores nulls
-		canvasPanel.restoreState(statelog.redo());
-		updateEnableds();
+		restoreState(statelog.redo());
 	}
 	/**
 	 * Saves the current state of the layer in the changelog. Undo can then recover the state.
 	 */
 	public void saveState() {
-		statelog.saveState(canvasPanel.getState());
+		if (transientState != null) {
+			statelog.saveState(transientState);
+			transientState = null;
+		}
+		statelog.saveState(getState());
 	}
+	private void restoreState(SaveableState state) {
+		canvasPanel.restoreState(state);
+		spritesheetManager.restoreState(state);
+		updateEnableds();
+	}
+	private SaveableState getState() {
+		return canvasPanel.getState();
+	}
+	
+	
 	
 	/**
 	 * Does anything that needs to be done before quitting. 
@@ -163,10 +176,15 @@ public class App {
 		}
 	}
 	
+	/**
+	 * Master method for choosing a sprite to edit in the canvas.
+	 * @param layer a sprite
+	 */
 	public void viewSprite(Layer layer) {
 		canvasPanel.setLayer(layer);
 		updateEnableds();
-		frame.repaint();
+		transientState = getState();
+		frame.repaint(); // TODO canvasPanel.repaint might suffice
 	}
 	
 	/**
@@ -177,6 +195,10 @@ public class App {
 		spritesheetManager.setCurrentSheet(s);
 		viewSprite(s.getSprite());
 		updateTitle();
+	}
+	
+	public Spritesheet getSpritesheet() {
+		return spritesheetManager.getCurrentSheet();
 	}
 	
 	private void updateTitle() {
@@ -293,17 +315,23 @@ public class App {
 			ButtonGroup group = new ButtonGroup();
 			
 			var tilesButton = new JRadioButtonMenuItem("Tiles");
-			tilesButton.addActionListener((e) -> canvasPanel.setRenderStyle(Layer.RENDER_OPAQUE));
+			tilesButton.addActionListener((e) -> canvasPanel.setRenderStyle(Layer.RENDER_TILES));
 			group.add(tilesButton);
-			tilesButton.setSelected(true);
 
-			var noneButton = new JRadioButtonMenuItem("None");
-			noneButton.addActionListener((e) -> canvasPanel.setRenderStyle(Layer.RENDER_TRANSPARENT));
-			group.add(noneButton);
+			var whiteButton = new JRadioButtonMenuItem("White");
+			whiteButton.addActionListener((e) -> canvasPanel.setRenderStyle(Layer.RENDER_WHITE));
+			group.add(whiteButton);
+			
+			var selectedButton = switch (CanvasPanel.initialRenderStyle) {
+				case Layer.RENDER_TILES -> tilesButton;
+				case Layer.RENDER_WHITE -> whiteButton;
+				default -> null;
+			};
+			selectedButton.setSelected(true);
 			
 			// add view menu items
 			viewMenu.add(tilesButton);
-			viewMenu.add(noneButton);
+			viewMenu.add(whiteButton);
 			
 			// add menus
 			add(fileMenu);
@@ -320,7 +348,6 @@ public class App {
 			if (result == JFileChooser.APPROVE_OPTION) {
 				File file = fileChooser.getSelectedFile();
 				setSpritesheet(IOUtil.loadSpritesheat(file));
-				saveState();
 			}
 		}
 		
