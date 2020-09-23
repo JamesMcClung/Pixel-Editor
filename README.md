@@ -2,6 +2,18 @@
 
 ## Changelog
 
+### 0.2
+
+#### Features
+
+- added eyedropper tool
+- pencil is now default tool
+
+#### Bug Fixes
+
+- pencil and eraser now respect size
+- drawing out of bounds no longer throws error
+
 ### 0.1
 
 #### Features

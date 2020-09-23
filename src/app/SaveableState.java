@@ -1,4 +1,4 @@
-package display;
+package app;
 
 import java.awt.Point;
 import java.awt.image.BufferedImage;

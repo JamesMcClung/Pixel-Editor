@@ -1,7 +1,7 @@
-package display;
+package app;
 
-import static display.Constants.hpad;
-import static display.Constants.pad;
+import static app.Constants.hpad;
+import static app.Constants.pad;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -99,13 +99,13 @@ public class SpritesheetManager extends JPanel {
 	private final List<JComponent> dependentComps = new ArrayList<>(); // components that are enabled/disabled whether or not a spritesheet is present 
 	
 	
-	public void clearSprite(Point spriteIndex) {
+	public void clearSprite(Point spriteIndex) { // TODO this should be in Layer
 		Layer sprite = currentSheet.getSprite(spriteIndex);
 		Dimension spriteDim = currentSheet.getSpriteDim();
 		Point pixel = new Point();
 		for (pixel.x = 0; pixel.x < spriteDim.width; pixel.x++)
 			for (pixel.y = 0; pixel.y < spriteDim.height; pixel.y++)
-				Eraser.erasePixel(sprite, pixel);
+				sprite.setPixel(pixel, Eraser.eraseColor);
 		app.repaintCanvas();
 	}
 	

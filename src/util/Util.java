@@ -16,17 +16,11 @@ import javax.swing.SwingConstants;
 
 public class Util {
 	
-	/**
-	 * Returns a/b, rounded down to the nearest integer.
-	 * @param a numerator
-	 * @param b denominator
-	 * @return result of division
-	 */
-	public static int divideFloor(int a, int b) {
-		int d = a/b;
-		if (a != 0 && a < 0 ^ b < 0)
-			return d - 1;
-		return d;
+	public static int floor(double a) {
+		int af = (int) a;
+		if (a < 0)
+			return af - 1;
+		return af;
 	}
 	
 	/**

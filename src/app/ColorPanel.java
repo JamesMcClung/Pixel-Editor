@@ -1,8 +1,8 @@
-package display;
+package app;
 
 
-import static display.Constants.hpad;
-import static display.Constants.pad;
+import static app.Constants.hpad;
+import static app.Constants.pad;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -91,8 +91,27 @@ public class ColorPanel extends JPanel {
 		return currentColor.color;
 	}
 	
+	/**
+	 * Sets the current color, triggering other changes.
+	 * @param c the color
+	 */
 	public void setCurrentColor(Color c) {
 		currentColor.setColor(c);
+	}
+	
+	/**
+	 * Sets the color that appears in the color maker panel.
+	 * @param c the color
+	 */
+	public void setPreviewColor(Color c) {
+		colorMakerPanel.previewColor.setColorByUser(c);
+	}
+	/**
+	 * Returns the color that appears in the color maker panel.
+	 * @param c the color
+	 */
+	public Color getPreviewColor() {
+		return colorMakerPanel.previewColor.color;
 	}
 	
 	@Override
@@ -268,8 +287,8 @@ public class ColorPanel extends JPanel {
 			previewColor = new ColorSwatch(initialColor) {
 				private static final long serialVersionUID = -2511399194072976234L;
 				@Override
-				public void setColorFromDrag(Color c) {
-					super.setColorFromDrag(c);
+				public void setColorByUser(Color c) {
+					super.setColorByUser(c);
 					adjusterPanel.updateToMatchColor(c);
 				}
 			};
@@ -461,7 +480,7 @@ public class ColorPanel extends JPanel {
 		@Override
 		public void mouseReleased(MouseEvent e) {
 			if (isDragging() && lastEntered != null && e.getComponent() instanceof ColorSwatch) {
-				lastEntered.setColorFromDrag(draggedSwatch.color);
+				lastEntered.setColorByUser(draggedSwatch.color);
 				lastEntered = null;
 				setDraggedSwatch(null);
 				repaint();
@@ -486,7 +505,7 @@ public class ColorPanel extends JPanel {
 		static final int spotDiam = 16;
 		
 		public ColorSwatch(Color color) {
-			this.color = color;
+			this.color = ensureOpaque(color);
 			setMinimumSize(new Dimension(width, height));
 			setPreferredSize(new Dimension(width, height));
 			addMouseListener(mouseHandler);
@@ -505,8 +524,24 @@ public class ColorPanel extends JPanel {
 		
 		
 		// Methods
+		/**
+		 * Returns an opaque Color with the same RGB value as the given color, creating a new Color if necessary.
+		 * @param c a color
+		 * @return given color, but with alpha=255
+		 */
+		private Color ensureOpaque(Color c) {
+			if (c.getAlpha() == 255)
+				return c;
+			return new Color(c.getRGB()); // this constructor ignores the alpha channel
+		}
 		
+		/**
+		 * Performs the bare minimum that must happen when color is set, i.e. repainting.
+		 * @param c a color
+		 */
 		public void setColor(Color c) {
+			c = ensureOpaque(c);
+			
 			if (c.equals(color))
 				return;
 			for (var cl : colorListeners)
@@ -514,7 +549,12 @@ public class ColorPanel extends JPanel {
 			color = c;
 			repaint();
 		}
-		public void setColorFromDrag(Color c) {
+		/**
+		 * Sets the color. Can be overridden to perform other functionality that would happen during runtime,
+		 * such as updating components that display information about this colorswatch.
+		 * @param c a color
+		 */
+		public void setColorByUser(Color c) {
 			setColor(c);
 		}
 		
@@ -550,7 +590,7 @@ public class ColorPanel extends JPanel {
 		private static final long serialVersionUID = -1470567223847526048L;
 
 		@Override
-		public void setColorFromDrag(Color c) { } // does nothing
+		public void setColorByUser(Color c) { } // does nothing
 	}
 
 }

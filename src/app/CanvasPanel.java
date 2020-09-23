@@ -1,4 +1,4 @@
-package display;
+package app;
 
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -26,15 +26,12 @@ public class CanvasPanel extends JPanel {
 	
 	// constructors
 
-	public CanvasPanel(App app) {
+	public CanvasPanel() {
 		this.setPreferredSize(new Dimension(width, height));
-		this.app = app;
 	}
 	
 	
 	// fields
-	
-	private final App app;
 	
 	private List<Layer> layers = new ArrayList<>();
 	private int renderStyle = initialRenderStyle;
@@ -42,6 +39,10 @@ public class CanvasPanel extends JPanel {
 	
 	// methods
 	
+	/**
+	 * Adds the given layer to the top of the list of layers.
+	 * @param l the layer
+	 */
 	public void addLayer(Layer l) {
 		layers.add(l);
 	}
@@ -57,10 +58,21 @@ public class CanvasPanel extends JPanel {
 		addLayer(l);
 	}
 	
+	/**
+	 * Returns the topmost (last to be rendered) layer, or null if there are no layers
+	 * @return the layer
+	 */
 	public Layer getTopLayer() {
+		if (layers.size() == 0)
+			return null;
 		return layers.get(layers.size() - 1);
 	}
 	
+	/**
+	 * Calculates and returns the pixel coordinates of the given point 
+	 * @param pointOnScreen a point in the reference frame of this panel
+	 * @return a point in the reference frame of the underlying top Layer 
+	 */
 	public Point getPointOnLayer(Point pointOnScreen) {
 		var tf = getTopLayer().getTransform(new Point(), getSize());
 		try {
@@ -69,7 +81,7 @@ public class CanvasPanel extends JPanel {
 			e.printStackTrace();
 		}
 		var pt = tf.transform(pointOnScreen, null);
-		return new Point((int) pt.getX(), (int) pt.getY());
+		return new Point(Util.floor(pt.getX()), Util.floor(pt.getY()));
 	}
 	
 	@Override
@@ -118,14 +130,21 @@ public class CanvasPanel extends JPanel {
 	}
 
 	/**
-	 * Creates a copy of the current state.
-	 * @return the state
+	 * Creates and returns an array containing the layers.
+	 * @return the array
 	 */
-	public SaveableState getState() {
-		Layer[] stateLayers = layers.toArray(new Layer[layers.size()]);
+	public Layer[] getLayers() {
+		return layers.toArray(new Layer[layers.size()]);
+	}
+	
+	/**
+	 * Creates and returns an array containing deep copies of the layer images.
+	 * @return the array
+	 */
+	public  BufferedImage[] getImageCopies() {
 		BufferedImage[] stateImages = new BufferedImage[layers.size()];
-		for (int i = 0; i < stateLayers.length; i++)
-			stateImages[i] = Util.deepCopy(stateLayers[i].getImage());
-		return new SaveableState(stateLayers, stateImages, app.getSpritesheet(), app.getSpritesheet().getActiveSpriteIndex());
+		for (int i = 0; i < layers.size(); i++)
+			stateImages[i] = Util.deepCopy(layers.get(i).getImage());
+		return stateImages;
 	}
 }

@@ -1,6 +1,5 @@
 package canvas;
 
-import static util.Util.divideFloor;
 import static util.Util.modPositive;
 
 import java.awt.Color;
@@ -80,7 +79,7 @@ public class Spritesheet extends Layer {
 	public Layer getSpriteRelative(int relativePos) {
 		Dimension ssDim = getSSDim();
 		int spritex = modPositive(activeSpriteIndex.x + relativePos, ssDim.width);
-		int spritey = modPositive(activeSpriteIndex.y + divideFloor(activeSpriteIndex.x + relativePos, ssDim.width), ssDim.height);
+		int spritey = modPositive(activeSpriteIndex.y + Math.floorDiv(activeSpriteIndex.x + relativePos, ssDim.width), ssDim.height);
 		return getSprite(new Point(spritex, spritey));
 	}
 	

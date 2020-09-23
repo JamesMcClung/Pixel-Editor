@@ -1,12 +1,11 @@
-package display;
+package app;
 
-import static display.Constants.hpad;
-import static display.Constants.pad;
+import static app.Constants.hpad;
+import static app.Constants.pad;
 
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridBagLayout;
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -83,7 +82,7 @@ public class App {
 		spritesheetManager = new SpritesheetManager(this);
 		colorPanel = new ColorPanel();
 		toolPanel = new ToolPanel(this);
-		canvasPanel = new CanvasPanel(this);
+		canvasPanel = new CanvasPanel();
 		
 		GBC.addComp(frame::add, 0, 0, spritesheetManager, new GBC().dim(2, 1).weight(1, 0).fill(GBC.BOTH).insets(pad, hpad, hpad, 0), BorderFactory.createRaisedSoftBevelBorder());
 		GBC.addComp(frame::add, 2, 0, colorPanel, new GBC().fill(GBC.BOTH).insets(pad, 0, hpad, hpad), BorderFactory.createRaisedSoftBevelBorder());
@@ -106,11 +105,11 @@ public class App {
 	// fields
 	
 	private final JFrame frame;
-	private final CanvasPanel canvasPanel;
 	private final MenuBar menuBar;
-	private final SpritesheetManager spritesheetManager;
-	private final ColorPanel colorPanel;
-	private final ToolPanel toolPanel;
+	final CanvasPanel canvasPanel;
+	final SpritesheetManager spritesheetManager;
+	final ColorPanel colorPanel;
+	final ToolPanel toolPanel;
 	
 	
 	// Methods
@@ -158,7 +157,10 @@ public class App {
 		updateEnableds();
 	}
 	private SaveableState getState() {
-		return canvasPanel.getState();
+		return new SaveableState(canvasPanel.getLayers(),
+				canvasPanel.getImageCopies(),
+				spritesheetManager.getCurrentSheet(),
+				spritesheetManager.getCurrentSheet().getActiveSpriteIndex());
 	}
 	
 	
@@ -184,7 +186,7 @@ public class App {
 		canvasPanel.setLayer(layer);
 		updateEnableds();
 		transientState = getState();
-		frame.repaint(); // TODO canvasPanel.repaint might suffice
+		frame.repaint(); // repaint everything to make sure little things get repainted (e.g. preview panel in spritesheet manager)
 	}
 	
 	/**
@@ -213,11 +215,7 @@ public class App {
 		return colorPanel.getCurrentColor();
 	}
 	
-	public Point getPointOnCanvas(Point pointOnScreen) {
-		return canvasPanel.getPointOnLayer(pointOnScreen);
-	}
-	
-	public Layer getCurrentLayer() {
+	public Layer getTopLayer() {
 		return canvasPanel.getTopLayer();
 	}
 	

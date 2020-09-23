@@ -1,4 +1,4 @@
-package display;
+package app;
 
 public class Constants {
 	/**

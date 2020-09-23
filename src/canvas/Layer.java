@@ -80,12 +80,31 @@ public class Layer {
 	}
 	
 	/**
-	 * Sets the color value of the given pixel.
+	 * Sets the color value of the given pixel. Ignores out-of-bounds pixels.
 	 * @param pixel pixel to set color of
 	 * @param color the color
 	 */
 	public void setPixel(Point pixel, Color color) {
-		image.setRGB(pixel.x, pixel.y, color.getRGB());
+		if (isInBounds(pixel))
+			image.setRGB(pixel.x, pixel.y, color.getRGB());
+	}
+	
+	/**
+	 * Sets the color values of each pixel within the given radius of the given point.
+	 * @param center center of circle to fill
+	 * @param radius2 square of radius of circle
+	 * @param color the color
+	 */
+	public void setPixels(Point center, double radius, Color color) {
+		int x0 = Util.floor(center.x - radius), y0 = Util.floor(center.y - radius);
+		Point p = new Point(x0, y0);
+		double radius2 = radius * radius;
+		for (p.x = x0; p.x <= center.x + radius; p.x++) {
+			for (p.y = y0; p.y <= center.y + radius; p.y++) {
+				if (Math.pow(p.x - center.x, 2) + Math.pow(p.y - center.y, 2) <= radius2)
+					setPixel(p, color);
+			}
+		}
 	}
 	
 	/**
@@ -178,6 +197,15 @@ public class Layer {
 	
 	public Dimension getSize() {
 		return new Dimension(getWidth(), getHeight());
+	}
+	
+	/**
+	 * Returns whether the given pixel is within the bounds of the underlying image.
+	 * @param pixel the pixel
+	 * @return see above
+	 */
+	public boolean isInBounds(Point pixel) {
+		return pixel.x > -1 && pixel.y > -1 && pixel.x < image.getWidth() && pixel.y < image.getHeight();
 	}
 	 
 	

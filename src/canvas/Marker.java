@@ -10,39 +10,46 @@ public class Marker implements Tool {
 	public static void draw(Layer l, Point pixel, ToolParams params) {
 		Graphics2D g = l.getGraphics();
 		Util.enableAntiAliasing(g);
-		g.setColor(Tool.getFadedColor(params.color, params.alpha));
-		int x = pixel.x - params.size / 2;
-		int y = pixel.y - params.size / 2;
-		g.fillOval(x, y, params.size, params.size);
+		g.setColor(Tool.getFadedColor(params.color(), params.alpha()));
+		int x = pixel.x - params.size() / 2;
+		int y = pixel.y - params.size() / 2;
+		g.fillOval(x, y, params.size(), params.size());
 		g.dispose();
 	}
 
 	@Override
-	public int click(Layer l, Point pixel, ToolParams params) {
+	public ToolResult click(Layer l, Point pixel, ToolParams params) {
+		return null;
+	}
+
+	@Override
+	public ToolResult press(Layer l, Point pixel, ToolParams params) {
 		draw(l, pixel, params);
-		return REPAINT;
+		return new ToolResult(REPAINT);
 	}
 
 	@Override
-	public int press(Layer l, Point pixel, ToolParams params) {
+	public ToolResult release(Layer l, Point pixel, ToolParams params) {
+		return new ToolResult(SAVE_STATE);
+	}
+
+	@Override
+	public ToolResult drag(Layer l, Point pixel, ToolParams params) {
 		draw(l, pixel, params);
-		return REPAINT;
+		return new ToolResult(REPAINT);
 	}
 
 	@Override
-	public int release(Layer l, Point pixel, ToolParams params) {
-		return SAVE_STATE;
+	public ToolResult move(Layer l, Point pixel, ToolParams params) {
+		return null;
 	}
-
 	@Override
-	public int drag(Layer l, Point pixel, ToolParams params) {
-		draw(l, pixel, params);
-		return REPAINT;
+	public ToolResult enter(Layer l, Point pixel, ToolParams params) {
+		return null;
 	}
-
 	@Override
-	public int move(Layer l, Point pixel, ToolParams params) {
-		return DO_NOTHING;
+	public ToolResult exit(Layer l, Point pixel, ToolParams params) {
+		return null;
 	}
 	
 	

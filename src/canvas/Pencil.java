@@ -5,36 +5,44 @@ import java.awt.Point;
 public class Pencil implements Tool {
 	
 	public static void draw(Layer l, Point pixel, ToolParams params) {
-		l.setPixel(pixel, Tool.getFadedColor(params.color, params.alpha));
-		// TODO adjustable size
+		l.setPixels(pixel, params.size()/2.0, params.color());
 	}
 
 	@Override
-	public int click(Layer l, Point pixel, ToolParams params) {
+	public ToolResult click(Layer l, Point pixel, ToolParams params) {
+		return null;
+	}
+
+	@Override
+	public ToolResult press(Layer l, Point pixel, ToolParams params) {
 		draw(l, pixel, params);
-		return REPAINT;
+		return new ToolResult(REPAINT);
 	}
 
 	@Override
-	public int press(Layer l, Point pixel, ToolParams params) {
+	public ToolResult release(Layer l, Point pixel, ToolParams params) {
+		return new ToolResult(SAVE_STATE);
+	}
+
+	@Override
+	public ToolResult drag(Layer l, Point pixel, ToolParams params) {
 		draw(l, pixel, params);
-		return REPAINT;
+		return new ToolResult(REPAINT);
 	}
 
 	@Override
-	public int release(Layer l, Point pixel, ToolParams params) {
-		return SAVE_STATE;
+	public ToolResult move(Layer l, Point pixel, ToolParams params) {
+		return null;
 	}
-
+	
 	@Override
-	public int drag(Layer l, Point pixel, ToolParams params) {
-		draw(l, pixel, params);
-		return REPAINT;
+	public ToolResult enter(Layer l, Point pixel, ToolParams params) {
+		return null;
 	}
-
+	
 	@Override
-	public int move(Layer l, Point pixel, ToolParams params) {
-		return DO_NOTHING;
+	public ToolResult exit(Layer l, Point pixel, ToolParams params) {
+		return null;
 	}
 	
 	
