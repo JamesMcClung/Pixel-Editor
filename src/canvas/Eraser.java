@@ -1,14 +1,12 @@
 package canvas;
 
-import java.awt.Color;
 import java.awt.Point;
 
 public class Eraser implements Tool {
 	
-	public static final Color eraseColor = new Color(255, 255, 255, 0); 
 	
 	public static void erasePixel(Layer l, Point pixel, ToolParams params) {
-		l.setPixels(pixel, params.size()/2.0, eraseColor);
+		l.setPixels(pixel, params.size()/2.0, Layer.eraseColor);
 	}
 
 	@Override

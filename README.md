@@ -2,6 +2,13 @@
 
 ## Changelog
 
+### 0.3
+
+#### Features
+
+- cut, copy, and paste sprites
+- play button
+
 ### 0.2
 
 #### Features

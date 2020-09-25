@@ -1,8 +1,5 @@
 package app;
 
-import static app.Constants.hpad;
-import static app.Constants.pad;
-
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -13,46 +10,80 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.NoninvertibleTransformException;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSlider;
 import javax.swing.JTextField;
+import javax.swing.Timer;
 
-import canvas.Eraser;
 import canvas.Layer;
 import canvas.Spritesheet;
+import util.Enabler;
 import util.GBC;
+import util.Util;
 
 public class SpritesheetManager extends JPanel {
 	private static final long serialVersionUID = 6720331984243667952L;
+	
+	/**
+	 * Sprites per second when playing animation
+	 */
+	private static final int initialFPS = 4;
 	
 	public SpritesheetManager(App app) {
 		this.app = app;
 		
 		setLayout(new GridBagLayout());
 		
+		playTimer = new Timer(1000/initialFPS, e -> nextSprite());
+		
 		// preview panel
 		previewPanel = new PreviewPanel();
 		
 		// Buttons
 		var buttonPanel = new JPanel(new GridBagLayout());
-		var lbutton = new JButton("<");
-		lbutton.addActionListener((e) -> app.viewSprite(currentSheet.getSpriteRelative(-1)));
 		
+		playButton = new JButton("Play");
+		playButton.addActionListener(e -> togglePlay());
+		
+		var fpsSlider = new JSlider(1, 20, initialFPS);
+		fpsSlider.setMinorTickSpacing(1);
+		fpsSlider.setPaintTicks(true);
+		fpsSlider.setSnapToTicks(true);
+		fpsSlider.addChangeListener(e -> playTimer.setDelay(1000/fpsSlider.getValue()));
+		fpsSlider.setPreferredSize(playButton.getPreferredSize());
+		
+		var lbutton = new JButton("<");
+		lbutton.addActionListener(e -> prevSprite());
 		var rbutton = new JButton(">");
-		rbutton.addActionListener((e) -> app.viewSprite(currentSheet.getSpriteRelative(1)));
+		rbutton.addActionListener(e -> nextSprite());
 		
 		var clearButton = new JButton("Clear");
-		clearButton.addActionListener((e) -> clearSprite(currentSheet.getActiveSpriteIndex()));
+		clearButton.addActionListener((e) -> clearSprite());
 		
+		var copyButton = new JButton("Copy");
+		copyButton.addActionListener((e) -> copySprite());
+		var cutButton = new JButton("Cut");
+		cutButton.addActionListener((e) -> cutSprite());
+		var pasteButton = new JButton("Paste");
+		pasteButton.addActionListener((e) -> pasteSprite());
+		
+		int pad = -Constants.pad/2 *0; // tinker with this
+		int hpad = pad/2;
 		GBC.addComp(buttonPanel::add, 0, 0, lbutton, new GBC().insets(pad, hpad, hpad, hpad));
-		GBC.addComp(buttonPanel::add, 1, 0, rbutton, new GBC().insets(pad, hpad, hpad, hpad));
-		GBC.addComp(buttonPanel::add, 2, 0, clearButton, new GBC().insets(pad, hpad, hpad, hpad));
+		GBC.addComp(buttonPanel::add, 1, 0, rbutton, new GBC().insets(hpad, hpad, hpad, hpad));
+		GBC.addComp(buttonPanel::add, 2, 0, playButton, new GBC().insets(hpad, hpad, hpad, hpad));
+		GBC.addComp(buttonPanel::add, 3, 0, fpsSlider, new GBC().insets(hpad, hpad, hpad, pad));
+		GBC.addComp(buttonPanel::add, 0, 1, copyButton, new GBC().insets(hpad, hpad, hpad, hpad));
+		GBC.addComp(buttonPanel::add, 1, 1, cutButton, new GBC().insets(hpad, hpad, hpad, hpad));
+		GBC.addComp(buttonPanel::add, 2, 1, pasteButton, new GBC().insets(hpad, hpad, hpad, hpad));
+		GBC.addComp(buttonPanel::add, 3, 1, clearButton, new GBC().insets(pad, hpad, hpad, pad));
 		
 		// Text fields
 		var textPanel = new JPanel(new GridBagLayout());
@@ -80,33 +111,85 @@ public class SpritesheetManager extends JPanel {
 		GBC.addComp(this::add, 1, 0, buttonPanel, new GBC().fill(GBC.BOTH));
 		GBC.addComp(this::add, 1, 1, textPanel, new GBC().fill(GBC.BOTH));
 		
-		dependentComps.add(spriteWidthField);
-		dependentComps.add(spriteHeightField);
-		dependentComps.add(lbutton);
-		dependentComps.add(rbutton);
-		dependentComps.add(clearButton);
+		// enabling management 
+		Enabler.Condition hasSheet = () -> currentSheet != null;
+		Enabler.Condition isNotPlaying = () -> !playTimer.isRunning();
+		enabler.add(hasSheet,
+						spriteWidthField::setEnabled,
+						spriteHeightField::setEnabled,
+						lbutton::setEnabled,
+						rbutton::setEnabled,
+						playButton::setEnabled,
+						clearButton::setEnabled,
+						cutButton::setEnabled,
+						copyButton::setEnabled,
+						pasteButton::setEnabled
+				);
+		enabler.add(new Enabler.Enableable[] {
+						lbutton::setEnabled,
+						rbutton::setEnabled
+				}, new Enabler.Condition[] {hasSheet, isNotPlaying});
 		
-		updateComponentStates();
+		updateEnableds();
 	}
 	
+	
+	// Fields
+	
 	private final App app;
+	private final Enabler enabler = new Enabler();
 	
 	private final List<Spritesheet> openSheets = new ArrayList<>();
 	private Spritesheet currentSheet = null;
 	
+	private final JButton playButton;
+	private final Timer playTimer;
+	
 	private final JPanel previewPanel;
 	private final JTextField spriteWidthField, spriteHeightField;
-	private final List<JComponent> dependentComps = new ArrayList<>(); // components that are enabled/disabled whether or not a spritesheet is present 
+	
+	private BufferedImage clipboard = null;
 	
 	
-	public void clearSprite(Point spriteIndex) { // TODO this should be in Layer
-		Layer sprite = currentSheet.getSprite(spriteIndex);
-		Dimension spriteDim = currentSheet.getSpriteDim();
-		Point pixel = new Point();
-		for (pixel.x = 0; pixel.x < spriteDim.width; pixel.x++)
-			for (pixel.y = 0; pixel.y < spriteDim.height; pixel.y++)
-				sprite.setPixel(pixel, Eraser.eraseColor);
+	// Methods
+	
+	private void copySprite() {
+		clipboard = Util.deepCopy(currentSheet.getSprite().getImage()); // deep copy so it isnt edited
+	}
+	
+	private void cutSprite() {
+		copySprite();
+		clearSprite();
+	}
+	
+	private void pasteSprite() {
+		currentSheet.getSprite().drawImage(clipboard);
+		app.saveState();
 		app.repaintCanvas();
+	}
+	
+	public void clearSprite() {
+		currentSheet.getSprite().clearImage();
+		app.saveState();
+		app.repaintCanvas();
+	}
+	
+	private void togglePlay() {
+		if (playTimer.isRunning()) {
+			playTimer.stop();
+			playButton.setText("Play");
+		} else {
+			playTimer.start();
+			playButton.setText("Stop");
+		}
+		updateEnableds();
+	}
+	
+	private void nextSprite() {
+		app.viewSprite(currentSheet.getSpriteRelative(1));
+	}
+	private void prevSprite() {
+		app.viewSprite(currentSheet.getSpriteRelative(-1));
 	}
 	
 	/**
@@ -169,7 +252,7 @@ public class SpritesheetManager extends JPanel {
 		if (!openSheets.contains(s))
 			openSheets.add(s);
 		
-		updateComponentStates();
+		updateEnableds();
 		
 		// update text entries
 		setTextSpriteDim(s.getSpriteDim());
@@ -180,12 +263,10 @@ public class SpritesheetManager extends JPanel {
 	}
 	
 	/**
-	 * Enables or disables scroll buttons, text fields, etc. depending on presence of currentSheet
+	 * Enables or disables scroll buttons, text fields, etc.
 	 */
-	private void updateComponentStates() {
-		boolean enabled = currentSheet != null;
-		for (JComponent comp : dependentComps)
-			comp.setEnabled(enabled);
+	private void updateEnableds() {
+		enabler.updateEnableds();
 	}
 	
 	/**
@@ -205,6 +286,11 @@ public class SpritesheetManager extends JPanel {
 		}
 		
 		private Color highlightColor = new Color(200, 170, 0, 64);
+		
+		@Override
+		public Dimension getPreferredSize() {
+			return new Dimension(87, 87); // TODO magic numbers
+		}
 		
 		@Override
 		public void paintComponent(Graphics g) {

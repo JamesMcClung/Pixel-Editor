@@ -31,6 +31,7 @@ import canvas.Layer;
 import canvas.Spritesheet;
 import io.IOUtil;
 import io.Memory;
+import util.Enabler;
 import util.GBC;
 import util.StateLog;
 public class App {
@@ -117,7 +118,7 @@ public class App {
 	
 	// update enabledness
 	public void updateEnableds() {
-		menuBar.updateMenuItemStates();
+		menuBar.updateEnableds();
 		toolPanel.updateEnableds();
 	}
 	
@@ -134,11 +135,9 @@ public class App {
 		return statelog.canRedo();
 	}
 	public void undo() {
-		// no need to check if it can undo, because restoreState ignores nulls
 		restoreState(statelog.undo());
 	}
 	public void redo() {
-		// no need to check if it can redo, because restoreState ignores nulls
 		restoreState(statelog.redo());
 	}
 	/**
@@ -149,24 +148,25 @@ public class App {
 			statelog.saveState(transientState);
 			transientState = null;
 		}
-		statelog.saveState(getState());
+		statelog.saveState(getState(false));
+		updateEnableds();
 	}
 	private void restoreState(SaveableState state) {
 		canvasPanel.restoreState(state);
 		spritesheetManager.restoreState(state);
 		updateEnableds();
 	}
-	private SaveableState getState() {
+	private SaveableState getState(boolean isTransient) {
 		return new SaveableState(canvasPanel.getLayers(),
 				canvasPanel.getImageCopies(),
 				spritesheetManager.getCurrentSheet(),
-				spritesheetManager.getCurrentSheet().getActiveSpriteIndex());
+				spritesheetManager.getCurrentSheet().getActiveSpriteIndex(),
+				isTransient);
 	}
 	
 	
-	
 	/**
-	 * Does anything that needs to be done before quitting. 
+	 * Does anything that needs to be done before quitting, and then exits the program.
 	 */
 	public void quit() {
 		try {
@@ -184,9 +184,9 @@ public class App {
 	 */
 	public void viewSprite(Layer layer) {
 		canvasPanel.setLayer(layer);
+		transientState = getState(true);
 		updateEnableds();
-		transientState = getState();
-		frame.repaint(); // repaint everything to make sure little things get repainted (e.g. preview panel in spritesheet manager)
+		repaintCanvas();
 	}
 	
 	/**
@@ -219,6 +219,9 @@ public class App {
 		return canvasPanel.getTopLayer();
 	}
 	
+	/**
+	 * Repaints everything that visually depends on the sprite, e.g. the editing canvas or preview panel 
+	 */
 	public void repaintCanvas() {
 		canvasPanel.repaint();
 		spritesheetManager.repaintPreview();
@@ -290,10 +293,10 @@ public class App {
 			var openMenuItem = new JMenuItem("Open...");
 			openMenuItem.addActionListener(this::openAction);
 			
-			saveMenuItem = new JMenuItem("Save");
+			var saveMenuItem = new JMenuItem("Save");
 			saveMenuItem.addActionListener(this::saveAction);
 			
-			saveAsMenuItem = new JMenuItem("Save As...");
+			var saveAsMenuItem = new JMenuItem("Save As...");
 			saveAsMenuItem.addActionListener(this::saveAsAction);
 			
 			var quitMenuItem = new JMenuItem("Quit");
@@ -334,11 +337,21 @@ public class App {
 			// add menus
 			add(fileMenu);
 			add(viewMenu);
+			
+			// enabler
+			Enabler.Condition isSpritesheet = () -> spritesheetManager.getCurrentSheet() != null;
+			Enabler.Condition isSavedSpritesheet = () -> spritesheetManager.getCurrentSheet().getFile() != null;
+			enabler.add(saveAsMenuItem::setEnabled, isSpritesheet);
+			enabler.add(saveMenuItem::setEnabled, isSpritesheet, isSavedSpritesheet);
 		}
 		
+		// Fields
+		
+		private final Enabler enabler = new Enabler();
 		private final JFileChooser fileChooser = new JFileChooser();
-		private final JMenuItem saveMenuItem; // has to be disabled when spritesheet has not been save-as'd yet
-		private final JMenuItem saveAsMenuItem; // has to be disabled when spritesheet does not exist
+		
+		
+		// Methods
 		
 		private void openAction(ActionEvent e) {
 			int result = fileChooser.showOpenDialog(frame);
@@ -362,12 +375,12 @@ public class App {
 	            File file = fileChooser.getSelectedFile();
 	            IOUtil.saveSpritesheetAs(spritesheetManager.getCurrentSheet(), file);
 	            updateTitle();
+	            updateEnableds();
 	        }
 		}
 		
-		public void updateMenuItemStates() {
-			saveAsMenuItem.setEnabled(spritesheetManager.getCurrentSheet() != null);
-			saveMenuItem.setEnabled(spritesheetManager.getCurrentSheet() != null && spritesheetManager.getCurrentSheet().getFile() != null);
+		public void updateEnableds() {
+			enabler.updateEnableds();
 		}
 		
 	}

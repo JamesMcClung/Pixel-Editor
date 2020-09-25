@@ -38,6 +38,7 @@ public class IOUtil {
 	public static void saveSpritesheetAs(Spritesheet s, File file) {
 		try {
 			ImageIO.write(s.getImage(), "png", file);
+			s.setFile(file);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

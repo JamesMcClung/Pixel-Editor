@@ -22,6 +22,7 @@ import canvas.Layer;
 import canvas.Marker;
 import canvas.Pencil;
 import canvas.Tool;
+import util.Enabler;
 import util.GBC;
 import util.LabeledSlider;
 
@@ -53,9 +54,9 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 		var markerButton = new ToolButton("Marker", new Marker());
 		var eyedropperButton = new ToolButton("Eye", new Eyedropper());
 		
-		undoButton = new JButton("Undo");
+		var undoButton = new JButton("Undo");
 		undoButton.addActionListener((e) -> app.undo());
-		redoButton = new JButton("Redo");
+		var redoButton = new JButton("Redo");
 		redoButton.addActionListener((e) -> app.redo());
 		
 		GBC toolButtonGBC = new GBC().weight(1,0).fill(GBC.BOTH).insets(hpad, hpad, hpad, hpad);
@@ -75,7 +76,14 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 		// initial tool
 		ToolButton initialToolButton = pencilButton;
 		currentTool = initialToolButton.tool;
+		
+		// enabling
+		enabler.add(undoButton::setEnabled, app::canUndo);
+		enabler.add(redoButton::setEnabled, app::canRedo);
 	}
+	
+	
+	// Fields
 	
 	private final App app;
 	private Tool currentTool;
@@ -83,7 +91,10 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 	private final LabeledSlider alphaSlider;
 	private final LabeledSlider diamSlider;
 	
-	private final JButton undoButton, redoButton; 
+	private final Enabler enabler = new Enabler();
+
+	
+	// Methods
 	
 	public int getAlpha() {
 		return alphaSlider.getValue();
@@ -125,7 +136,6 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 		case Tool.DO_NOTHING:
 			return;
 		}
-		app.updateEnableds();
 	}
 	
 
@@ -193,8 +203,7 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 
 
 	public void updateEnableds() {
-		undoButton.setEnabled(app.canUndo());
-		redoButton.setEnabled(app.canRedo());
+		enabler.updateEnableds();
 	}
 
 	public void setAlpha(int alpha) {

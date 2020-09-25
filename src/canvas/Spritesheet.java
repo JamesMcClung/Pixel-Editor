@@ -36,7 +36,7 @@ public class Spritesheet extends Layer {
 		this.spriteDim = spriteDim == null ? new Dimension(image.getWidth(), image.getHeight()) : new Dimension(spriteDim);
 	}
 	
-	private final File file;
+	private File file;
 	private final Dimension spriteDim; // the dimensions in pixels of each sprite
 	private final Point activeSpriteIndex = new Point(0, 0);
 	
@@ -113,6 +113,9 @@ public class Spritesheet extends Layer {
 	
 	public File getFile() {
 		return file;
+	}
+	public void setFile(File f) {
+		this.file = f;
 	}
 	
 	/**

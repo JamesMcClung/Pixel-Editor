@@ -19,7 +19,8 @@ public class Layer {
 	public static final int RENDER_WHITE = 2;
 //	public static final int RENDER_GRID = 3; TODO
 	
-	public static final int maxNumSaveStates = 100;
+
+	public static final Color eraseColor = new Color(255, 255, 255, 0); 
 	
 	/**
 	 * A Layer is a grid of pixels that can be drawn on, rendered to the display, etc.
@@ -116,7 +117,7 @@ public class Layer {
 	}
 	
 	/**
-	 * Draws the given image. 
+	 * Draws the given image at 0,0 on this layer's underlying image.
 	 */
 	public void drawImage(BufferedImage image) {
 		var g = getGraphics();
@@ -206,6 +207,13 @@ public class Layer {
 	 */
 	public boolean isInBounds(Point pixel) {
 		return pixel.x > -1 && pixel.y > -1 && pixel.x < image.getWidth() && pixel.y < image.getHeight();
+	}
+
+	public void clearImage() {
+		Point pixel = new Point();
+		for (pixel.x = 0; pixel.x < getWidth(); pixel.x++)
+			for (pixel.y = 0; pixel.y < getHeight(); pixel.y++)
+				setPixel(pixel, eraseColor);
 	}
 	 
 	
