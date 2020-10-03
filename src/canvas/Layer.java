@@ -8,11 +8,13 @@ import java.awt.Paint;
 import java.awt.Point;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
 
 import util.Cache;
 import util.Util;
 
-public class Layer {
+public class Layer implements BitMask {
 	
 	public static final int RENDER_TRANSPARENT = 0;
 	public static final int RENDER_TILES = 1;
@@ -20,7 +22,7 @@ public class Layer {
 //	public static final int RENDER_GRID = 3; TODO
 	
 
-	public static final Color eraseColor = new Color(255, 255, 255, 0); 
+	public static final Color ERASE_COLOR = new Color(255, 255, 255, 0); 
 	
 	/**
 	 * A Layer is a grid of pixels that can be drawn on, rendered to the display, etc.
@@ -28,6 +30,10 @@ public class Layer {
 	
 	public Layer(int width, int height) {
 		this(new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB));
+	}
+	
+	public Layer(Dimension size) {
+		this(size.width, size.height);
 	}
 	
 	public Layer(BufferedImage image) {
@@ -49,10 +55,15 @@ public class Layer {
 		return image;
 	}
 	
+	public int getRGB(Point pixel) {
+		return image.getRGB(pixel.x, pixel.y);
+	}
+	
 	/**
 	 * Returns the width of the underlying image, in pixels.
 	 * @return the width
 	 */
+	@Override
 	public int getWidth() {
 		return image.getTileWidth();
 	}
@@ -61,6 +72,7 @@ public class Layer {
 	 * Returns the height of the underlying image, in pixels.
 	 * @return the height
 	 */
+	@Override
 	public int getHeight() {
 		return image.getHeight();
 	}
@@ -97,15 +109,12 @@ public class Layer {
 	 * @param color the color
 	 */
 	public void setPixels(Point center, double radius, Color color) {
-		int x0 = Util.floor(center.x - radius), y0 = Util.floor(center.y - radius);
-		Point p = new Point(x0, y0);
-		double radius2 = radius * radius;
-		for (p.x = x0; p.x <= center.x + radius; p.x++) {
-			for (p.y = y0; p.y <= center.y + radius; p.y++) {
-				if (Math.pow(p.x - center.x, 2) + Math.pow(p.y - center.y, 2) <= radius2)
-					setPixel(p, color);
-			}
-		}
+		doThingInCircle(center, radius, (image, pixel) -> setPixel(pixel, color));
+	}
+	
+	public void setPixels(Point x0, PixelMask mask, Color color) {
+		int rgb = color.getRGB();
+		mask.doAction(x0, (p) -> image.setRGB(p.x, p.y, rgb));
 	}
 	
 	/**
@@ -117,11 +126,12 @@ public class Layer {
 	}
 	
 	/**
-	 * Draws the given image at 0,0 on this layer's underlying image.
+	 * Draws the given image at the given point on this layer's underlying image.
+	 * @param p the point in the image to draw given image
 	 */
-	public void drawImage(BufferedImage image) {
+	public void drawImage(BufferedImage image, Point p) {
 		var g = getGraphics();
-		g.drawImage(image, 0, 0, null);
+		g.drawImage(image, p.x, p.y, null);
 		g.dispose();
 	}
 	/**
@@ -146,8 +156,18 @@ public class Layer {
 	 * @param style either {@link #RENDER_TILES}, {@link #RENDER_WHITE}, or {@link #RENDER_TRANSPARENT}.
 	 */
 	public void renderAt(Graphics2D g, Point loc, Dimension size, int style) {
+		renderAt(g, getTransform(loc, size), style);
+	}
+	
+	/**
+	 * Draws the image scaled and moved according to given transform, including a background depending on specified style.
+	 * @param g graphics to draw on
+	 * @param tf AffineTransform to use
+	 * @param style either {@link #RENDER_TILES}, {@link #RENDER_WHITE}, or {@link #RENDER_TRANSPARENT}.
+	 */
+	public void renderAt(Graphics2D g, AffineTransform tf, int style) {
 		g = (Graphics2D) g.create();
-		g.transform(getTransform(loc, size));
+		g.transform(tf);
 		switch(style) {
 		case RENDER_TILES:
 			g.setPaint(backgroundPaint.get(backgroundTileDim));
@@ -196,8 +216,33 @@ public class Layer {
 		return new AffineTransform(scale, 0, 0, scale, loc.x, loc.y);
 	}
 	
-	public Dimension getSize() {
-		return new Dimension(getWidth(), getHeight());
+	public PixelMask getMonochromeRegion(Point pixel, double searchRadius, List<Integer> otherRGBs) {
+		final List<Integer> rgbs = otherRGBs == null ? new ArrayList<>() : otherRGBs;
+		
+		rgbs.add(image.getRGB(pixel.x, pixel.y)); // make sure we search for color at given pixel
+		
+		PixelMask mask = new PixelMask(getSize());
+		PixelMask explored = new PixelMask(getSize());
+		mask.set(pixel, true);
+		PixelMask.Condition condition = (p, rgb2) -> {
+			for (Integer rgb : rgbs)
+				if (Util.rgbEqual(rgb, rgb2))
+					return true;
+			return false;
+		};
+		
+		explore(pixel, searchRadius, mask, explored, condition);
+		
+		return mask;
+	}
+	private void explore(Point p, double searchRadius, PixelMask mask, PixelMask explored, PixelMask.Condition condition) {
+		explored.set(p.x, p.y, true);
+		doThingInCircle(p, searchRadius, (image, pixel) -> {
+			if (isInBounds(pixel) && !explored.get(pixel.x, pixel.y) && condition.accept(null, image.getRGB(pixel.x, pixel.y))) {
+				mask.set(pixel.x, pixel.y, true);
+				explore(pixel, searchRadius, mask, explored, condition);
+			}
+		});
 	}
 	
 	/**
@@ -213,8 +258,38 @@ public class Layer {
 		Point pixel = new Point();
 		for (pixel.x = 0; pixel.x < getWidth(); pixel.x++)
 			for (pixel.y = 0; pixel.y < getHeight(); pixel.y++)
-				setPixel(pixel, eraseColor);
+				setPixel(pixel, ERASE_COLOR);
 	}
 	 
+	
+	// Util Methods
+	
+	public static interface ThingDoer {
+		void doThing(BufferedImage image, Point pixel);
+	}
+	
+	public void doThingInCircle(Point center, double radius, ThingDoer doer) {
+		int x0 = Util.floor(center.x - radius), y0 = Util.floor(center.y - radius);
+		Point p = new Point(x0, y0);
+		double radius2 = radius * radius;
+		for (p.x = x0; p.x <= center.x + radius; p.x++) {
+			for (p.y = y0; p.y <= center.y + radius; p.y++) {
+				if (Math.pow(p.x - center.x, 2) + Math.pow(p.y - center.y, 2) <= radius2)
+					doer.doThing(image, p);
+			}
+		}
+	}
+	
+	
+	// Bitmask stuff
+
+	@Override
+	public boolean get(int x, int y) {
+		return get(new Point(x, y));
+	}
+	@Override
+	public boolean get(Point pixel) {
+		return isInBounds(pixel) && Util.getAlpha(getRGB(pixel)) != 0;
+	}
 	
 }

@@ -2,6 +2,15 @@
 
 ## Changelog
 
+### 0.4
+
+#### Features
+
+- drag tool to drag sprites and selections
+- fill tool
+- color selection
+- box selection
+
 ### 0.3
 
 #### Features

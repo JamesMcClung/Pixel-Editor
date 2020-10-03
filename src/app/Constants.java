@@ -1,5 +1,7 @@
 package app;
 
+import java.awt.Color;
+
 public class Constants {
 	/**
 	 * Padding between components
@@ -9,4 +11,9 @@ public class Constants {
 	 * pad/2
 	 */
 	public static final int hpad = pad/2;
+	
+	
+	
+	public static final Color selectionOutline = Color.BLUE;
+	public static final Color preselectionOutline = Color.YELLOW;
 }

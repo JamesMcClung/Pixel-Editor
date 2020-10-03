@@ -80,8 +80,8 @@ public class SpritesheetManager extends JPanel {
 		GBC.addComp(buttonPanel::add, 1, 0, rbutton, new GBC().insets(hpad, hpad, hpad, hpad));
 		GBC.addComp(buttonPanel::add, 2, 0, playButton, new GBC().insets(hpad, hpad, hpad, hpad));
 		GBC.addComp(buttonPanel::add, 3, 0, fpsSlider, new GBC().insets(hpad, hpad, hpad, pad));
-		GBC.addComp(buttonPanel::add, 0, 1, copyButton, new GBC().insets(hpad, hpad, hpad, hpad));
-		GBC.addComp(buttonPanel::add, 1, 1, cutButton, new GBC().insets(hpad, hpad, hpad, hpad));
+		GBC.addComp(buttonPanel::add, 0, 1, cutButton, new GBC().insets(hpad, hpad, hpad, hpad));
+		GBC.addComp(buttonPanel::add, 1, 1, copyButton, new GBC().insets(hpad, hpad, hpad, hpad));
 		GBC.addComp(buttonPanel::add, 2, 1, pasteButton, new GBC().insets(hpad, hpad, hpad, hpad));
 		GBC.addComp(buttonPanel::add, 3, 1, clearButton, new GBC().insets(pad, hpad, hpad, pad));
 		
@@ -163,7 +163,7 @@ public class SpritesheetManager extends JPanel {
 	}
 	
 	private void pasteSprite() {
-		currentSheet.getSprite().drawImage(clipboard);
+		currentSheet.getSprite().drawImage(clipboard, new Point());
 		app.saveState();
 		app.repaintCanvas();
 	}
@@ -341,15 +341,22 @@ public class SpritesheetManager extends JPanel {
 
 
 
-	public void restoreState(SaveableState state) {
+	public void restoreState(State state) {
 		if (state == null)
 			return;
-		setCurrentSheet(state.ss());
+		setCurrentSheet(state.spritesheet());
 		currentSheet.setSpriteIndex(state.spriteIndex());
-		Dimension spriteSize = state.layers()[0].getSize();
+		Dimension spriteSize = state.spriteSize();
 		currentSheet.setSpriteDim(spriteSize);
 		setTextSpriteDim(spriteSize);
 		repaintPreview();
 	}
+	
+	public State getState() {
+		return new State(currentSheet, currentSheet.getActiveSpriteIndex(), currentSheet.getSpriteDim());
+	}
+	
+	@SuppressWarnings("preview")
+	public static record State(Spritesheet spritesheet, Point spriteIndex, Dimension spriteSize) { }
 
 }

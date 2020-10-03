@@ -1,10 +1,9 @@
-package app;
+package tools;
 
 import java.awt.Color;
 import java.awt.Point;
 
 import canvas.Layer;
-import canvas.Tool;
 
 public class Eyedropper implements Tool {
 	

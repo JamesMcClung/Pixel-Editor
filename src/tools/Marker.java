@@ -1,8 +1,9 @@
-package canvas;
+package tools;
 
 import java.awt.Graphics2D;
 import java.awt.Point;
 
+import canvas.Layer;
 import util.Util;
 
 public class Marker implements Tool {

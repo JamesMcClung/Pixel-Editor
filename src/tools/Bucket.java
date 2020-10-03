@@ -1,11 +1,13 @@
-package canvas;
+package tools;
 
 import java.awt.Point;
 
-public class Pencil implements Tool {
+import canvas.Layer;
+
+public class Bucket implements Tool {
 	
-	public static void draw(Layer l, Point pixel, ToolParams params) {
-		l.setPixels(pixel, params.size()/2.0, params.color());
+	public static void fill(Layer l, Point pixel, ToolParams params) {
+		l.setPixels(new Point(), l.getMonochromeRegion(pixel, Math.max(1, params.size()/2d), null), params.fadedColor());
 	}
 
 	@Override
@@ -15,8 +17,8 @@ public class Pencil implements Tool {
 
 	@Override
 	public ToolResult press(Layer l, Point pixel, ToolParams params) {
-		draw(l, pixel, params);
-		return new ToolResult(REPAINT);
+		fill(l, pixel, params);
+		return new ToolResult(Tool.REPAINT);
 	}
 
 	@Override
@@ -26,26 +28,23 @@ public class Pencil implements Tool {
 
 	@Override
 	public ToolResult drag(Layer l, Point pixel, ToolParams params) {
-		draw(l, pixel, params);
-		return new ToolResult(REPAINT);
+		fill(l, pixel, params);
+		return new ToolResult(Tool.REPAINT);
 	}
 
 	@Override
 	public ToolResult move(Layer l, Point pixel, ToolParams params) {
 		return null;
 	}
-	
+
 	@Override
 	public ToolResult enter(Layer l, Point pixel, ToolParams params) {
 		return null;
 	}
-	
+
 	@Override
 	public ToolResult exit(Layer l, Point pixel, ToolParams params) {
 		return null;
 	}
-	
-	
-
 
 }

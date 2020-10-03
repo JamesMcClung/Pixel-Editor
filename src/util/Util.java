@@ -16,11 +16,32 @@ import javax.swing.SwingConstants;
 
 public class Util {
 	
+	public static Point max(Point a, Point b) {
+		return new Point(Math.max(a.x, b.x), Math.max(a.y, b.y));
+	}
+	public static Point min(Point a, Point b) {
+		return new Point(Math.min(a.x, b.x), Math.min(a.y, b.y));
+	}
+	
+	public static boolean rgbEqual(int rgb1, int rgb2) {
+		return rgb1 == rgb2 ||
+				((rgb1 | rgb2) >>> 24 == 0); // alpha = 0 for both
+	}
+	public static int getAlpha(int rgb) {
+		return rgb >>>  24;
+	}
+	
 	public static int floor(double a) {
 		int af = (int) a;
 		if (a < 0)
-			return af - 1;
+			af--;
 		return af;
+	}
+	public static int ceil(double a) {
+		int ac = (int) a;
+		if (a > 0)
+			ac++;
+		return ac;
 	}
 	
 	/**
@@ -35,7 +56,15 @@ public class Util {
 			return b + m;
 		return m;
 	}
-	
+	public static Point sum(Point a, Point b) {
+		return new Point(a.x+b.x, a.y+b.y);
+	}
+	public static Point difference(Point a, Point b) {
+		return new Point(a.x-b.x, a.y-b.y);
+	}
+	public static Point times(Point a, double d) {
+		return new Point(floor(a.x * d), floor(a.y * d));
+	}
 	public static Point elementwiseProd(Point a, Point b) {
 		return new Point(a.x * b.x, a.y * b.y);
 	}

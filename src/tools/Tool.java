@@ -1,9 +1,11 @@
-package canvas;
+package tools;
 
 import java.awt.Color;
 import java.awt.Point;
+import java.awt.event.MouseEvent;
 
 import app.App;
+import canvas.Layer;
 
 public interface Tool {
 	
@@ -26,5 +28,9 @@ public interface Tool {
 	public static record ToolResult(int command) { }
 	
 	@SuppressWarnings("preview")
-	public static record ToolParams(Color color, int alpha, int size, App app) { }
+	public static record ToolParams(Color color, int alpha, int size, App app, MouseEvent e) {
+		public Color fadedColor() {
+			return getFadedColor(color, alpha);
+		}
+	}
 }

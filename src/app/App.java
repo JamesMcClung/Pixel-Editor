@@ -81,9 +81,9 @@ public class App {
 		
 		// other components
 		spritesheetManager = new SpritesheetManager(this);
+		canvasPanel = new CanvasPanel();
 		colorPanel = new ColorPanel();
 		toolPanel = new ToolPanel(this);
-		canvasPanel = new CanvasPanel();
 		
 		GBC.addComp(frame::add, 0, 0, spritesheetManager, new GBC().dim(2, 1).weight(1, 0).fill(GBC.BOTH).insets(pad, hpad, hpad, 0), BorderFactory.createRaisedSoftBevelBorder());
 		GBC.addComp(frame::add, 2, 0, colorPanel, new GBC().fill(GBC.BOTH).insets(pad, 0, hpad, hpad), BorderFactory.createRaisedSoftBevelBorder());
@@ -107,10 +107,10 @@ public class App {
 	
 	private final JFrame frame;
 	private final MenuBar menuBar;
-	final CanvasPanel canvasPanel;
-	final SpritesheetManager spritesheetManager;
-	final ColorPanel colorPanel;
-	final ToolPanel toolPanel;
+	public final CanvasPanel canvasPanel;
+	public final SpritesheetManager spritesheetManager;
+	public final ColorPanel colorPanel;
+	public final ToolPanel toolPanel;
 	
 	
 	// Methods
@@ -152,15 +152,13 @@ public class App {
 		updateEnableds();
 	}
 	private void restoreState(SaveableState state) {
-		canvasPanel.restoreState(state);
-		spritesheetManager.restoreState(state);
+		canvasPanel.restoreState(state.canvasState());
+		spritesheetManager.restoreState(state.ssmState());
 		updateEnableds();
 	}
 	private SaveableState getState(boolean isTransient) {
-		return new SaveableState(canvasPanel.getLayers(),
-				canvasPanel.getImageCopies(),
-				spritesheetManager.getCurrentSheet(),
-				spritesheetManager.getCurrentSheet().getActiveSpriteIndex(),
+		return new SaveableState(canvasPanel.getState(),
+				spritesheetManager.getState(),
 				isTransient);
 	}
 	

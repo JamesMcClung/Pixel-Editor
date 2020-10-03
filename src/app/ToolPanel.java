@@ -17,11 +17,16 @@ import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 
-import canvas.Eraser;
 import canvas.Layer;
-import canvas.Marker;
-import canvas.Pencil;
-import canvas.Tool;
+import tools.BoxSelector;
+import tools.Bucket;
+import tools.ColorSelector;
+import tools.Dragger;
+import tools.Eraser;
+import tools.Eyedropper;
+import tools.Marker;
+import tools.Pencil;
+import tools.Tool;
 import util.Enabler;
 import util.GBC;
 import util.LabeledSlider;
@@ -40,6 +45,7 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 		// sliders
 		alphaSlider = new LabeledSlider(0, 255, 255);
 		diamSlider = new LabeledSlider(1, 50, 1);
+		diamSlider.addChangeListener(e -> currentTB.size = diamSlider.getValue());
 		
 		GBC.addComp(sliderPanel::add, 0, 0, new JLabel("Alpha:"), new GBC().anchor(GBC.EAST).insets(0, pad, 0, hpad));
 		GBC.addComp(sliderPanel::add, 1, 0, alphaSlider.label, new GBC().insets(0, hpad, 0, hpad));
@@ -52,21 +58,33 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 		var pencilButton = new ToolButton("Pencil", new Pencil());
 		var eraserButton = new ToolButton("Eraser", new Eraser());
 		var markerButton = new ToolButton("Marker", new Marker());
+		var bucketButton = new ToolButton("Fill", new Bucket(), 2, 50, 2);
 		var eyedropperButton = new ToolButton("Eye", new Eyedropper());
+		var colorSelectButton = new ToolButton("CSelect", new ColorSelector(), 2, 50, 2);
+		var boxSelectButton = new ToolButton("BSelect", new BoxSelector(), 2, 50, 2);
+		var deselectButton = new JButton("Drop");
+		deselectButton.addActionListener(e -> {app.canvasPanel.dropSelection(); app.repaintCanvas(); app.saveState();});
+		var dragButton = new ToolButton("Drag", new Dragger());
 		
 		var undoButton = new JButton("Undo");
 		undoButton.addActionListener((e) -> app.undo());
 		var redoButton = new JButton("Redo");
 		redoButton.addActionListener((e) -> app.redo());
 		
-		GBC toolButtonGBC = new GBC().weight(1,0).fill(GBC.BOTH).insets(hpad, hpad, hpad, hpad);
-		GBC.addComp(toolButtonPanel::add, 0, 0, pencilButton, toolButtonGBC);
-		GBC.addComp(toolButtonPanel::add, 1, 0, eraserButton, toolButtonGBC);
-		GBC.addComp(toolButtonPanel::add, 2, 0, markerButton, toolButtonGBC);
-		GBC.addComp(toolButtonPanel::add, 0, 1, eyedropperButton, toolButtonGBC);
-		GBC.addComp(toolButtonPanel::add, 0, 2, new JSeparator(SwingConstants.HORIZONTAL), new GBC().dim(3, 1).fill(GBC.HORIZONTAL).weight(1, 0).insets(0, hpad, 0, hpad));
-		GBC.addComp(toolButtonPanel::add, 0, 3, undoButton, toolButtonGBC);
-		GBC.addComp(toolButtonPanel::add, 1, 3, redoButton, toolButtonGBC);
+		GBC toolButtonGBC = new GBC().weight(1,0).fill(GBC.BOTH);
+		int i = 0, j = 0;
+		GBC.addComp(toolButtonPanel::add, i=0, j=0, pencilButton, toolButtonGBC);
+		GBC.addComp(toolButtonPanel::add, ++i, j, eraserButton, toolButtonGBC);
+		GBC.addComp(toolButtonPanel::add, ++i, j, markerButton, toolButtonGBC);
+		GBC.addComp(toolButtonPanel::add, ++i, j, bucketButton, toolButtonGBC);
+		GBC.addComp(toolButtonPanel::add, i=0, j=1, eyedropperButton, toolButtonGBC);
+		GBC.addComp(toolButtonPanel::add, i=0, j=2, colorSelectButton, toolButtonGBC);
+		GBC.addComp(toolButtonPanel::add, ++i, j, boxSelectButton, toolButtonGBC);
+		GBC.addComp(toolButtonPanel::add, ++i, j, dragButton, toolButtonGBC);
+		GBC.addComp(toolButtonPanel::add, ++i, j, deselectButton, toolButtonGBC);
+		GBC.addComp(toolButtonPanel::add, i=0, ++j, new JSeparator(SwingConstants.HORIZONTAL), new GBC().dim(3, 1).fill(GBC.HORIZONTAL).weight(1, 0).insets(0, hpad, 0, hpad));
+		GBC.addComp(toolButtonPanel::add, i=0, ++j, undoButton, toolButtonGBC);
+		GBC.addComp(toolButtonPanel::add, ++i, j, redoButton, toolButtonGBC);
 		
 		// panels
 		GBC.addComp(this::add, 0, 0, sliderPanel, new GBC().dim(2, 1).insets(pad, pad, hpad, pad).fill(GBC.BOTH));
@@ -74,19 +92,19 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 		GBC.addComp(this::add, 0, 2, toolButtonPanel, new GBC().dim(2, 1).insets(hpad, pad, pad, hpad).fill(GBC.BOTH));
 		
 		// initial tool
-		ToolButton initialToolButton = pencilButton;
-		currentTool = initialToolButton.tool;
+		currentTB = pencilButton;
 		
 		// enabling
 		enabler.add(undoButton::setEnabled, app::canUndo);
 		enabler.add(redoButton::setEnabled, app::canRedo);
+		enabler.add(deselectButton::setEnabled, app.canvasPanel::hasSelection);
 	}
 	
 	
 	// Fields
 	
 	private final App app;
-	private Tool currentTool;
+	private ToolButton currentTB;
 	
 	private final LabeledSlider alphaSlider;
 	private final LabeledSlider diamSlider;
@@ -105,12 +123,12 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 	}
 	
 	
-	private Tool.ToolParams getToolParams() {
-		return new Tool.ToolParams(app.getCurrentColor(), getAlpha(), getDiam(), app);
+	private Tool.ToolParams getToolParams(MouseEvent e) {
+		return new Tool.ToolParams(app.getCurrentColor(), getAlpha(), getDiam(), app, e);
 	}
 	
 	private Point getPointOnCanvas(MouseEvent e) {
-		return app.canvasPanel.getPointOnLayer(e.getPoint());
+		return app.canvasPanel.getPointOnLayer(e.getPoint(), true, false); 
 	}
 	
 	private Layer getCurrentLayer() {
@@ -118,12 +136,12 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 	}
 	
 	private boolean canUseTool() {
-		return currentTool != null && getCurrentLayer() != null;
+		return currentTB != null && getCurrentLayer() != null;
 	}
 	
-	private void handleToolUse(Tool.ToolResult result) {
+	private boolean handleToolUse(Tool.ToolResult result) {
 		if (result == null)
-			return;
+			return false;
 		switch (result.command()) {
 		case Tool.REPAINT:
 			app.repaintCanvas();
@@ -132,53 +150,53 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 			app.repaintCanvas();
 		case Tool.SAVE_STATE:
 			app.saveState();
-			break;
 		case Tool.DO_NOTHING:
-			return;
 		}
+		app.updateEnableds();
+		return true;
 	}
 	
 
 	@Override
 	public void mouseDragged(MouseEvent e) {
-		if (canUseTool())
-			handleToolUse(currentTool.drag(getCurrentLayer(), getPointOnCanvas(e), getToolParams()));
+		if (canUseTool() && handleToolUse(currentTB.tool.drag(getCurrentLayer(), getPointOnCanvas(e), getToolParams(e))))
+				e.consume();
 	}
 
 	@Override
 	public void mouseMoved(MouseEvent e) {
-		if (canUseTool())
-			handleToolUse(currentTool.move(getCurrentLayer(), getPointOnCanvas(e), getToolParams()));
+		if (canUseTool() && handleToolUse(currentTB.tool.move(getCurrentLayer(), getPointOnCanvas(e), getToolParams(e))))
+				e.consume();
 	}
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		if (canUseTool())
-			handleToolUse(currentTool.click(getCurrentLayer(), getPointOnCanvas(e), getToolParams()));
+		if (canUseTool() && handleToolUse(currentTB.tool.click(getCurrentLayer(), getPointOnCanvas(e), getToolParams(e))))
+				e.consume();
 	}
 
 	@Override
 	public void mousePressed(MouseEvent e) {
-		if (canUseTool())
-			handleToolUse(currentTool.press(getCurrentLayer(), getPointOnCanvas(e), getToolParams()));
+		if (canUseTool() && handleToolUse(currentTB.tool.press(getCurrentLayer(), getPointOnCanvas(e), getToolParams(e))))
+			e.consume();
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		if (canUseTool())
-			handleToolUse(currentTool.release(getCurrentLayer(), getPointOnCanvas(e), getToolParams()));
+		if (canUseTool() && handleToolUse(currentTB.tool.release(getCurrentLayer(), getPointOnCanvas(e), getToolParams(e))))
+			e.consume();
 	}
 	
 	@Override
 	public void mouseEntered(MouseEvent e) {
-		if (canUseTool())
-			handleToolUse(currentTool.enter(getCurrentLayer(), getPointOnCanvas(e), getToolParams()));
+		if (canUseTool() && handleToolUse(currentTB.tool.enter(getCurrentLayer(), getPointOnCanvas(e), getToolParams(e))))
+			e.consume();
 	}
 
 	@Override
 	public void mouseExited(MouseEvent e) { 
-		if (canUseTool())
-			handleToolUse(currentTool.exit(getCurrentLayer(), getPointOnCanvas(e), getToolParams()));
+		if (canUseTool() && handleToolUse(currentTB.tool.exit(getCurrentLayer(), getPointOnCanvas(e), getToolParams(e))))
+			e.consume();
 	}
 	
 	
@@ -187,17 +205,25 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 		private static final long serialVersionUID = -1156021027317278350L;
 
 		public ToolButton(String name, Tool tool) {
+			this(name, tool, 1, 50, 1);
+		}
+		public ToolButton(String name, Tool tool, int minSize, int maxSize, int initialSize) {
 			super(name);
 			this.tool = tool;
+			size = initialSize;
 			addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					currentTool = tool;
+					currentTB = ToolButton.this;
+					diamSlider.setMinimum(minSize);
+					diamSlider.setMaximum(maxSize);
+					diamSlider.setValue(size);
 				}
 			});
 		}
 		
 		private final Tool tool;
+		private int size;
 	}
 
 
