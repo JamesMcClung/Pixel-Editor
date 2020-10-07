@@ -5,7 +5,12 @@ import java.awt.Point;
 import canvas.Layer;
 import util.Util;
 
-public class Dragger implements Tool {
+public class Dragger extends Tool {
+	
+	public Dragger() {
+		super();
+		hasSize = hasStrength = false;
+	}
 
 	@Override
 	public ToolResult click(Layer l, Point pixel, ToolParams params) {
@@ -43,21 +48,6 @@ public class Dragger implements Tool {
 	public ToolResult drag(Layer l, Point pixel, ToolParams params) {
 		params.app().canvasPanel.setSelectionLoc(Util.sum(Util.difference(params.e().getPoint(), initialMouseLoc), initialSelectionLoc));
 		return new ToolResult(Tool.REPAINT);
-	}
-
-	@Override
-	public ToolResult move(Layer l, Point pixel, ToolParams params) {
-		return null;
-	}
-
-	@Override
-	public ToolResult enter(Layer l, Point pixel, ToolParams params) {
-		return null;
-	}
-
-	@Override
-	public ToolResult exit(Layer l, Point pixel, ToolParams params) {
-		return null;
 	}
 
 }

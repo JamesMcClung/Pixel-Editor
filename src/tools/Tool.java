@@ -7,17 +7,58 @@ import java.awt.event.MouseEvent;
 import app.App;
 import canvas.Layer;
 
-public interface Tool {
+public abstract class Tool {
 	
 	public static final int DO_NOTHING = 0, REPAINT = 1, SAVE_STATE = 2, REPAINT_AND_SAVE = 3;
 	
-	ToolResult click(Layer l, Point pixel, ToolParams params);
-	ToolResult press(Layer l, Point pixel, ToolParams params);
-	ToolResult release(Layer l, Point pixel, ToolParams params);
-	ToolResult drag(Layer l, Point pixel, ToolParams params);
-	ToolResult move(Layer l, Point pixel, ToolParams params);
-	ToolResult enter(Layer l, Point pixel, ToolParams params);
-	ToolResult exit(Layer l, Point pixel, ToolParams params);
+	protected Tool() { 
+		strengthName = "Alpha";
+		minStrength = 0;
+		maxStrength = 255;
+		currentStrength = 255;
+		hasStrength = true;
+		enableStrength = true;
+		
+		sizeName = "Diameter";
+		minSize = 1;
+		maxSize = 64;
+		currentSize = 1;
+		hasSize = true;
+		enableSize = true;
+	}
+	
+	public String strengthName;
+	public int minStrength, maxStrength, currentStrength;
+	public boolean hasStrength, enableStrength;
+	
+	public String sizeName;
+	public int minSize, maxSize, currentSize;
+	public boolean hasSize, enableSize;
+	
+	
+	public ToolResult click(Layer l, Point pixel, ToolParams params) {
+		return null;
+	}
+	public ToolResult press(Layer l, Point pixel, ToolParams params) {
+		return null;
+	}
+	public ToolResult release(Layer l, Point pixel, ToolParams params) {
+		return null;
+	}
+	public ToolResult drag(Layer l, Point pixel, ToolParams params) {
+		return null;
+	}
+	public ToolResult move(Layer l, Point pixel, ToolParams params) {
+		return null;
+	}
+	public ToolResult enter(Layer l, Point pixel, ToolParams params) {
+		return null;
+	}
+	public ToolResult exit(Layer l, Point pixel, ToolParams params) {
+		return null;
+	}
+	
+	
 	
 	public static Color getFadedColor(Color c, int alpha) {
 		// assumes given color starts with alpha=255
@@ -28,9 +69,9 @@ public interface Tool {
 	public static record ToolResult(int command) { }
 	
 	@SuppressWarnings("preview")
-	public static record ToolParams(Color color, int alpha, int size, App app, MouseEvent e) {
-		public Color fadedColor() {
-			return getFadedColor(color, alpha);
+	public static record ToolParams(Color color, App app, MouseEvent e) {
+		public Color fadedColor(int strength) {
+			return getFadedColor(color, strength);
 		}
 	}
 }

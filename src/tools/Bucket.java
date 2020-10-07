@@ -1,23 +1,26 @@
 package tools;
 
+import java.awt.Color;
 import java.awt.Point;
 
 import canvas.Layer;
 
-public class Bucket implements Tool {
+public class Bucket extends Tool {
 	
-	public static void fill(Layer l, Point pixel, ToolParams params) {
-		l.setPixels(new Point(), l.getMonochromeRegion(pixel, Math.max(1, params.size()/2d), null), params.fadedColor());
+	public Bucket() {
+		super();
+		hasStrength = false;
+		sizeName = "Search Diameter";
+		minSize = currentSize = 2;
 	}
-
-	@Override
-	public ToolResult click(Layer l, Point pixel, ToolParams params) {
-		return null;
+	
+	public void fill(Layer l, Point pixel, Color color) {
+		l.setPixels(new Point(), l.getMonochromeRegion(pixel, Math.max(1, currentSize/2d), null), color);
 	}
 
 	@Override
 	public ToolResult press(Layer l, Point pixel, ToolParams params) {
-		fill(l, pixel, params);
+		fill(l, pixel, params.fadedColor(currentStrength));
 		return new ToolResult(Tool.REPAINT);
 	}
 
@@ -28,23 +31,8 @@ public class Bucket implements Tool {
 
 	@Override
 	public ToolResult drag(Layer l, Point pixel, ToolParams params) {
-		fill(l, pixel, params);
+		fill(l, pixel, params.fadedColor(currentStrength));
 		return new ToolResult(Tool.REPAINT);
-	}
-
-	@Override
-	public ToolResult move(Layer l, Point pixel, ToolParams params) {
-		return null;
-	}
-
-	@Override
-	public ToolResult enter(Layer l, Point pixel, ToolParams params) {
-		return null;
-	}
-
-	@Override
-	public ToolResult exit(Layer l, Point pixel, ToolParams params) {
-		return null;
 	}
 
 }

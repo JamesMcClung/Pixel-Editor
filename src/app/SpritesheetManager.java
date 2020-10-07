@@ -56,6 +56,7 @@ public class SpritesheetManager extends JPanel {
 		fpsSlider.setMinorTickSpacing(1);
 		fpsSlider.setPaintTicks(true);
 		fpsSlider.setSnapToTicks(true);
+		fpsSlider.setFocusable(false);
 		fpsSlider.addChangeListener(e -> playTimer.setDelay(1000/fpsSlider.getValue()));
 		fpsSlider.setPreferredSize(playButton.getPreferredSize());
 		
@@ -278,19 +279,15 @@ public class SpritesheetManager extends JPanel {
 	
 	
 	
-	private class PreviewPanel extends JPanel implements MouseListener {
+	private class PreviewPanel extends JPanel implements MouseListener, SizeLockable {
 		private static final long serialVersionUID = 8611113602166572032L;
 		
 		public PreviewPanel() {
 			addMouseListener(this);
+			app.lockSizeAfterPack(this);
 		}
 		
 		private Color highlightColor = new Color(200, 170, 0, 64);
-		
-		@Override
-		public Dimension getPreferredSize() {
-			return new Dimension(87, 87); // TODO magic numbers
-		}
 		
 		@Override
 		public void paintComponent(Graphics g) {
@@ -337,6 +334,15 @@ public class SpritesheetManager extends JPanel {
 		public void mouseEntered(MouseEvent e) { }
 		@Override
 		public void mouseExited(MouseEvent e) { }
+
+
+		@Override
+		public void lockSize() {
+			// make it a square
+			var size = getSize();
+			int length = Math.min(size.width, size.height);
+			setMinimumSize(new Dimension(length, length));
+		}
 	}
 
 

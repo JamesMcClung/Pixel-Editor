@@ -15,5 +15,6 @@ public class Constants {
 	
 	
 	public static final Color selectionOutline = Color.BLUE;
-	public static final Color preselectionOutline = Color.YELLOW;
+	public static final Color preselectionOutline = new Color(0, 255, 255);
+	public static final Color toolOutline = new Color(0, 255, 0);
 }

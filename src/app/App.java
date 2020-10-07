@@ -13,9 +13,12 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
+import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
+import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -26,6 +29,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 
 import canvas.Layer;
 import canvas.Spritesheet;
@@ -98,6 +102,8 @@ public class App {
 		updateEnableds();
 		
 		frame.pack();
+		for (var comp : compsToLockSizeOfAfterPacking)
+			comp.lockSize();
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
 	}
@@ -112,8 +118,13 @@ public class App {
 	public final ColorPanel colorPanel;
 	public final ToolPanel toolPanel;
 	
+	private final ArrayList<SizeLockable> compsToLockSizeOfAfterPacking = new ArrayList<>(); // only used after frame.pack() is called in constructor
+	
 	
 	// Methods
+	void lockSizeAfterPack(SizeLockable comp) {
+		compsToLockSizeOfAfterPacking.add(comp);
+	}
 	
 	
 	// update enabledness
@@ -224,6 +235,23 @@ public class App {
 		canvasPanel.repaint();
 		spritesheetManager.repaintPreview();
 	}
+	
+	
+	/**
+	 * Binds the given key to the given action.
+	 * @param key a character, e.g. "A" (case sensitive!)
+	 * @param action what happens when key is pressed
+	 */
+	public void addKeyBinding(String key, Action action) {
+		var comp = frame.getRootPane(); // doesnt really matter what this is
+		var inputMap = comp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		var actionMap = comp.getActionMap();
+		
+		inputMap.put(KeyStroke.getKeyStroke(key), key);
+		actionMap.put(key, action);
+	}
+	
+	
 	
 	private void makeNewSpritesheet(ActionEvent e) {
 		NewSpritesheetPanel nssp = new NewSpritesheetPanel();

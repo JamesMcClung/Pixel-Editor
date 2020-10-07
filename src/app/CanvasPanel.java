@@ -8,6 +8,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import javax.swing.JPanel;
 
@@ -41,7 +42,7 @@ public class CanvasPanel extends JPanel {
 	private Layer selection = null;
 	private final Point selectionLoc = new Point();
 	
-	private final ArrayList<Renderable> renderables = new ArrayList<>(); // things drawn on top, like selection outlines
+	private final HashSet<Renderable> renderables = new HashSet<>(); // things drawn on top, like selection outlines
 	
 	
 	// methods

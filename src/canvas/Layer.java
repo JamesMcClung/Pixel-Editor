@@ -263,18 +263,23 @@ public class Layer implements BitMask {
 	 
 	
 	// Util Methods
-	
 	public static interface ThingDoer {
 		void doThing(BufferedImage image, Point pixel);
 	}
 	
+	/**
+	 * Performs a given action at each point in a specified circle.
+	 * @param center center of circle
+	 * @param radius radius of circle (inclusive)
+	 * @param doer map from (BufferedImage, Point) -> void
+	 */
 	public void doThingInCircle(Point center, double radius, ThingDoer doer) {
 		int x0 = Util.floor(center.x - radius), y0 = Util.floor(center.y - radius);
 		Point p = new Point(x0, y0);
 		double radius2 = radius * radius;
 		for (p.x = x0; p.x <= center.x + radius; p.x++) {
 			for (p.y = y0; p.y <= center.y + radius; p.y++) {
-				if (Math.pow(p.x - center.x, 2) + Math.pow(p.y - center.y, 2) <= radius2)
+				if (Math.pow(p.x - center.x, 2) + Math.pow(p.y - center.y, 2) <= radius2 && isInBounds(p))
 					doer.doThing(image, p);
 			}
 		}

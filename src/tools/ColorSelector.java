@@ -12,12 +12,20 @@ import canvas.Layer;
 import canvas.PixelMask;
 import util.Util;
 
-public class ColorSelector implements Tool, Renderable {
+public class ColorSelector extends Tool implements Renderable {
 	
 	// static methods
 
 	private static boolean isSelectionOpaque(Layer l, Point pixel, ToolParams params) {
 		return params.app().canvasPanel.hasSelection() && l.get(pixel);
+	}
+	
+	
+	public ColorSelector() {
+		super();
+		hasStrength = false;
+		sizeName = "Search Diameter";
+		minSize = currentSize = 2;
 	}
 	
 	
@@ -51,7 +59,7 @@ public class ColorSelector implements Tool, Renderable {
 			return null;
 		
 		// add the region to the mask of pixels to select
-		PixelMask newRegion = top.getMonochromeRegion(pixel, params.size()/2d, rgbsInDrag);
+		PixelMask newRegion = top.getMonochromeRegion(pixel, currentSize/2d, rgbsInDrag);
 		selectionMask = selectionMask == null ? newRegion : PixelMask.or(selectionMask, newRegion, new Point()); 
 		params.app().canvasPanel.addRenderable(this);
 		return new ToolResult(REPAINT);
@@ -70,11 +78,6 @@ public class ColorSelector implements Tool, Renderable {
 	
 	
 	// mouse stuff
-	
-	@Override
-	public ToolResult click(Layer l, Point pixel, ToolParams params) {
-		return null;
-	}
 
 	@Override
 	public ToolResult press(Layer l, Point pixel, ToolParams params) {
@@ -96,21 +99,6 @@ public class ColorSelector implements Tool, Renderable {
 	@Override
 	public ToolResult drag(Layer l, Point pixel, ToolParams params) {
 		return selectColor(l, pixel, params);
-	}
-
-	@Override
-	public ToolResult move(Layer l, Point pixel, ToolParams params) {
-		return null;
-	}
-
-	@Override
-	public ToolResult enter(Layer l, Point pixel, ToolParams params) {
-		return null;
-	}
-
-	@Override
-	public ToolResult exit(Layer l, Point pixel, ToolParams params) {
-		return null;
 	}
 
 

@@ -12,7 +12,13 @@ import canvas.Layer;
 import canvas.PixelMask;
 import util.Util;
 
-public class BoxSelector implements Tool, Renderable {
+public class BoxSelector extends Tool implements Renderable {
+	
+	public BoxSelector() {
+		super();
+		hasStrength = false;
+		hasSize = false;
+	}
 
 	@Override
 	public void renderAt(Graphics2D g, AffineTransform tf) {
@@ -39,14 +45,9 @@ public class BoxSelector implements Tool, Renderable {
 	}
 	
 	
-	private final Point start = new Point(),
-			end = new Point();
+	private final Point start = new Point();
+	private final Point end = new Point();
 	
-
-	@Override
-	public ToolResult click(Layer l, Point pixel, ToolParams params) {
-		return null;
-	}
 
 	@Override
 	public ToolResult press(Layer l, Point pixel, ToolParams params) {
@@ -82,21 +83,6 @@ public class BoxSelector implements Tool, Renderable {
 	public ToolResult drag(Layer l, Point pixel, ToolParams params) {
 		end.setLocation(params.e().getPoint());
 		return new ToolResult(REPAINT);
-	}
-
-	@Override
-	public ToolResult move(Layer l, Point pixel, ToolParams params) {
-		return null;
-	}
-
-	@Override
-	public ToolResult enter(Layer l, Point pixel, ToolParams params) {
-		return null;
-	}
-
-	@Override
-	public ToolResult exit(Layer l, Point pixel, ToolParams params) {
-		return null;
 	}
 
 }

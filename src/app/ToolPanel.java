@@ -3,6 +3,7 @@ package app;
 import static app.Constants.hpad;
 import static app.Constants.pad;
 
+import java.awt.Color;
 import java.awt.GridBagLayout;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
@@ -11,6 +12,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
+import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -24,9 +26,12 @@ import tools.ColorSelector;
 import tools.Dragger;
 import tools.Eraser;
 import tools.Eyedropper;
+import tools.HueChanger;
 import tools.Marker;
 import tools.Pencil;
+import tools.Smoother;
 import tools.Tool;
+import tools.Warper;
 import util.Enabler;
 import util.GBC;
 import util.LabeledSlider;
@@ -34,8 +39,32 @@ import util.LabeledSlider;
 public class ToolPanel extends JPanel implements MouseListener, MouseMotionListener {
 	private static final long serialVersionUID = 4242175503749643716L;
 	
+	public static final Color selectedColor = new Color(150, 190, 255);
+	
 	public ToolPanel(App app) {
+		// direct interactions with app
 		this.app = app;
+		app.addKeyBinding("UP", new AbstractAction() {
+			private static final long serialVersionUID = -4225429967635528669L;
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int str = sizeSlider.getValue();
+				sizeSlider.setValue(str + 1);
+				if (currentTB.tool instanceof Renderable)
+					app.canvasPanel.repaint();
+			}
+		});
+		app.addKeyBinding("DOWN", new AbstractAction() {
+			private static final long serialVersionUID = -4225429967635528669L;
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int str = sizeSlider.getValue();
+				sizeSlider.setValue(str - 1);
+				if (currentTB.tool instanceof Renderable)
+					app.canvasPanel.repaint();
+			}
+		});
+		
 		setLayout(new GridBagLayout());
 
 		// make panels
@@ -43,28 +72,33 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 		JPanel toolButtonPanel = new JPanel(new GridBagLayout());
 		
 		// sliders
-		alphaSlider = new LabeledSlider(0, 255, 255);
-		diamSlider = new LabeledSlider(1, 50, 1);
-		diamSlider.addChangeListener(e -> currentTB.size = diamSlider.getValue());
+		strengthSlider = new LabeledSlider(0, 255, 255);
+		sizeSlider = new LabeledSlider(1, 50, 1);
+		// make  sure tool buttons remember their sizes and strengths
+		strengthSlider.addChangeListener(e -> currentTB.tool.currentStrength= strengthSlider.getValue());
+		sizeSlider.addChangeListener(e -> currentTB.tool.currentSize = sizeSlider.getValue());
 		
-		GBC.addComp(sliderPanel::add, 0, 0, new JLabel("Alpha:"), new GBC().anchor(GBC.EAST).insets(0, pad, 0, hpad));
-		GBC.addComp(sliderPanel::add, 1, 0, alphaSlider.label, new GBC().insets(0, hpad, 0, hpad));
-		GBC.addComp(sliderPanel::add, 2, 0, alphaSlider, new GBC());
-		GBC.addComp(sliderPanel::add, 0, 1, new JLabel("Size:"), new GBC().anchor(GBC.EAST).insets(0, hpad, 0, hpad));
-		GBC.addComp(sliderPanel::add, 1, 1, diamSlider.label, new GBC().insets(0, hpad, 0, hpad));
-		GBC.addComp(sliderPanel::add, 2, 1, diamSlider, new GBC());
+		GBC.addComp(sliderPanel::add, 0, 0, strengthText, new GBC().anchor(GBC.EAST).weight(.5, 0));
+		GBC.addComp(sliderPanel::add, 1, 0, strengthSlider.label, new GBC().insets(0, hpad, 0, hpad).weight(.25, 0));
+		GBC.addComp(sliderPanel::add, 2, 0, strengthSlider, new GBC().weight(.25, 0));
+		GBC.addComp(sliderPanel::add, 0, 1, sizeText, new GBC().anchor(GBC.EAST).weight(.5, 0));
+		GBC.addComp(sliderPanel::add, 1, 1, sizeSlider.label, new GBC().insets(0, hpad, 0, hpad).weight(.25, 0));
+		GBC.addComp(sliderPanel::add, 2, 1, sizeSlider, new GBC().weight(.25, 0));
 		
 		// tools
-		var pencilButton = new ToolButton("Pencil", new Pencil());
-		var eraserButton = new ToolButton("Eraser", new Eraser());
-		var markerButton = new ToolButton("Marker", new Marker());
-		var bucketButton = new ToolButton("Fill", new Bucket(), 2, 50, 2);
-		var eyedropperButton = new ToolButton("Eye", new Eyedropper());
-		var colorSelectButton = new ToolButton("CSelect", new ColorSelector(), 2, 50, 2);
-		var boxSelectButton = new ToolButton("BSelect", new BoxSelector(), 2, 50, 2);
+		var pencilButton = new ToolButton("Pencil", new Pencil(), "P");
+		var eraserButton = new ToolButton("Eraser", new Eraser(), "E");
+		var markerButton = new ToolButton("Marker", new Marker(), "M");
+		var bucketButton = new ToolButton("Fill", new Bucket(), "F");
+		var eyedropperButton = new ToolButton("Eye", new Eyedropper(), "I");
+		var hueButton = new ToolButton("Hue", new HueChanger(), "H");
+		var warpButton = new ToolButton("Warp", new Warper(), "W");
+		var smoothButton = new ToolButton("Smooth", new Smoother(), "S");
+		var colorSelectButton = new ToolButton("CSelect", new ColorSelector(), "C");
+		var boxSelectButton = new ToolButton("BSelect", new BoxSelector(), "B");
 		var deselectButton = new JButton("Drop");
 		deselectButton.addActionListener(e -> {app.canvasPanel.dropSelection(); app.repaintCanvas(); app.saveState();});
-		var dragButton = new ToolButton("Drag", new Dragger());
+		var dragButton = new ToolButton("Drag", new Dragger(), "D");
 		
 		var undoButton = new JButton("Undo");
 		undoButton.addActionListener((e) -> app.undo());
@@ -78,6 +112,9 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 		GBC.addComp(toolButtonPanel::add, ++i, j, markerButton, toolButtonGBC);
 		GBC.addComp(toolButtonPanel::add, ++i, j, bucketButton, toolButtonGBC);
 		GBC.addComp(toolButtonPanel::add, i=0, j=1, eyedropperButton, toolButtonGBC);
+		GBC.addComp(toolButtonPanel::add, ++i, j, hueButton, toolButtonGBC);
+		GBC.addComp(toolButtonPanel::add, ++i, j, warpButton, toolButtonGBC);
+		GBC.addComp(toolButtonPanel::add, ++i, j, smoothButton, toolButtonGBC);
 		GBC.addComp(toolButtonPanel::add, i=0, j=2, colorSelectButton, toolButtonGBC);
 		GBC.addComp(toolButtonPanel::add, ++i, j, boxSelectButton, toolButtonGBC);
 		GBC.addComp(toolButtonPanel::add, ++i, j, dragButton, toolButtonGBC);
@@ -87,12 +124,14 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 		GBC.addComp(toolButtonPanel::add, ++i, j, redoButton, toolButtonGBC);
 		
 		// panels
-		GBC.addComp(this::add, 0, 0, sliderPanel, new GBC().dim(2, 1).insets(pad, pad, hpad, pad).fill(GBC.BOTH));
+		GBC.addComp(this::add, 0, 0, sliderPanel, new GBC().dim(2, 1).insets(pad, pad, hpad, pad).anchor(GBC.SOUTH).fill(GBC.HORIZONTAL).weight(0, 1));
 		GBC.addComp(this::add, 0, 1, new JSeparator(SwingConstants.HORIZONTAL), new GBC().fill(GBC.HORIZONTAL).weight(1, 0).insets(0, hpad, 0, hpad));
-		GBC.addComp(this::add, 0, 2, toolButtonPanel, new GBC().dim(2, 1).insets(hpad, pad, pad, hpad).fill(GBC.BOTH));
+		GBC.addComp(this::add, 0, 2, toolButtonPanel, new GBC().dim(2, 1).insets(hpad, pad, pad, hpad).fill(GBC.HORIZONTAL).anchor(GBC.NORTH).weight(0, 1));
+		app.lockSizeAfterPack(() -> sliderPanel.setPreferredSize(sliderPanel.getSize()));
 		
 		// initial tool
 		currentTB = pencilButton;
+		currentTB.setBackground(selectedColor);
 		
 		// enabling
 		enabler.add(undoButton::setEnabled, app::canUndo);
@@ -106,37 +145,42 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 	private final App app;
 	private ToolButton currentTB;
 	
-	private final LabeledSlider alphaSlider;
-	private final LabeledSlider diamSlider;
+	private final LabeledSlider strengthSlider;
+	private final LabeledSlider sizeSlider;
+	private final JLabel strengthText = new JLabel("Alpha:");
+	private final JLabel sizeText = new JLabel("Diameter:");
 	
 	private final Enabler enabler = new Enabler();
 
 	
 	// Methods
 	
-	public int getAlpha() {
-		return alphaSlider.getValue();
+	public int getToolStrength() {
+		return strengthSlider.getValue();
 	}
 	
-	public int getDiam() {
-		return diamSlider.getValue();
+	public int getToolSize() {
+		return sizeSlider.getValue();
 	}
+	
+	
+	// Tool stuff
 	
 	
 	private Tool.ToolParams getToolParams(MouseEvent e) {
-		return new Tool.ToolParams(app.getCurrentColor(), getAlpha(), getDiam(), app, e);
+		return new Tool.ToolParams(app.getCurrentColor(), app, e);
 	}
 	
 	private Point getPointOnCanvas(MouseEvent e) {
 		return app.canvasPanel.getPointOnLayer(e.getPoint(), true, false); 
 	}
 	
-	private Layer getCurrentLayer() {
+	private Layer getActiveLayer() {
 		return app.getTopLayer();
 	}
 	
 	private boolean canUseTool() {
-		return currentTB != null && getCurrentLayer() != null;
+		return currentTB != null && getActiveLayer() != null;
 	}
 	
 	private boolean handleToolUse(Tool.ToolResult result) {
@@ -159,71 +203,124 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 
 	@Override
 	public void mouseDragged(MouseEvent e) {
-		if (canUseTool() && handleToolUse(currentTB.tool.drag(getCurrentLayer(), getPointOnCanvas(e), getToolParams(e))))
+		if (canUseTool() && handleToolUse(currentTB.tool.drag(getActiveLayer(), getPointOnCanvas(e), getToolParams(e))))
 				e.consume();
 	}
 
 	@Override
 	public void mouseMoved(MouseEvent e) {
-		if (canUseTool() && handleToolUse(currentTB.tool.move(getCurrentLayer(), getPointOnCanvas(e), getToolParams(e))))
+		if (canUseTool() && handleToolUse(currentTB.tool.move(getActiveLayer(), getPointOnCanvas(e), getToolParams(e))))
 				e.consume();
 	}
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		if (canUseTool() && handleToolUse(currentTB.tool.click(getCurrentLayer(), getPointOnCanvas(e), getToolParams(e))))
+		if (canUseTool() && handleToolUse(currentTB.tool.click(getActiveLayer(), getPointOnCanvas(e), getToolParams(e))))
 				e.consume();
 	}
 
 	@Override
 	public void mousePressed(MouseEvent e) {
-		if (canUseTool() && handleToolUse(currentTB.tool.press(getCurrentLayer(), getPointOnCanvas(e), getToolParams(e))))
+		if (canUseTool() && handleToolUse(currentTB.tool.press(getActiveLayer(), getPointOnCanvas(e), getToolParams(e))))
 			e.consume();
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		if (canUseTool() && handleToolUse(currentTB.tool.release(getCurrentLayer(), getPointOnCanvas(e), getToolParams(e))))
+		if (canUseTool() && handleToolUse(currentTB.tool.release(getActiveLayer(), getPointOnCanvas(e), getToolParams(e))))
 			e.consume();
 	}
 	
 	@Override
 	public void mouseEntered(MouseEvent e) {
-		if (canUseTool() && handleToolUse(currentTB.tool.enter(getCurrentLayer(), getPointOnCanvas(e), getToolParams(e))))
+		if (canUseTool() && handleToolUse(currentTB.tool.enter(getActiveLayer(), getPointOnCanvas(e), getToolParams(e))))
 			e.consume();
 	}
 
 	@Override
 	public void mouseExited(MouseEvent e) { 
-		if (canUseTool() && handleToolUse(currentTB.tool.exit(getCurrentLayer(), getPointOnCanvas(e), getToolParams(e))))
+		if (canUseTool() && handleToolUse(currentTB.tool.exit(getActiveLayer(), getPointOnCanvas(e), getToolParams(e))))
 			e.consume();
 	}
 	
 	
-	
-	private class ToolButton extends JButton {
+	/**
+	 * A button associated with a tool, e.g. the pencil button. 
+	 */
+	private class ToolButton extends JButton implements ActionListener {
 		private static final long serialVersionUID = -1156021027317278350L;
-
-		public ToolButton(String name, Tool tool) {
-			this(name, tool, 1, 50, 1);
-		}
-		public ToolButton(String name, Tool tool, int minSize, int maxSize, int initialSize) {
+		
+		public ToolButton(String name, Tool tool, String hotkey) {
 			super(name);
 			this.tool = tool;
-			size = initialSize;
-			addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					currentTB = ToolButton.this;
-					diamSlider.setMinimum(minSize);
-					diamSlider.setMaximum(maxSize);
-					diamSlider.setValue(size);
-				}
-			});
+			
+			this.setOpaque(true); // so it can be highlighted by color
+			addActionListener(this);
+			
+			if (hotkey != null)
+				app.addKeyBinding(hotkey, new AbstractAction() {
+					private static final long serialVersionUID = -3450898524607129561L;
+
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						ToolButton.this.doClick();
+						app.canvasPanel.repaint();
+					}
+				});
 		}
 		
+		
+		// Fields
+
 		private final Tool tool;
-		private int size;
+		
+		
+		// Methods
+		
+		@SuppressWarnings("preview")
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			// jank to make pencil or marker use eyedropper's alpha when switching
+			if (currentTB.tool instanceof Eyedropper && 
+					(tool instanceof Pencil || tool instanceof Marker)) {
+				tool.currentStrength = currentTB.tool.currentStrength;
+			}
+			
+			if (currentTB.tool instanceof Renderable r)
+				app.canvasPanel.removeRenderable(r);
+			if (tool instanceof Renderable r)
+				app.canvasPanel.addRenderable(r);
+			
+			// switch active tool button
+			currentTB.setBackground(null);
+			currentTB = ToolButton.this;
+			setBackground(selectedColor);
+			
+			// reconfigure sliders
+			int size = tool.currentSize;
+			sizeSlider.setMinimum(tool.minSize);
+			sizeSlider.setMaximum(tool.maxSize);
+			sizeSlider.setValue(size);
+			sizeText.setText(tool.sizeName + ":");
+			
+			sizeSlider.setVisible(tool.hasSize);
+			sizeText.setVisible(tool.hasSize);
+			
+			sizeSlider.setEnabled(tool.enableSize);
+			sizeText.setEnabled(tool.enableSize);
+			
+			int strength = tool.currentStrength;
+			strengthSlider.setMinimum(tool.minStrength);
+			strengthSlider.setMaximum(tool.maxStrength);
+			strengthSlider.setValue(strength);
+			strengthText.setText(tool.strengthName + ":");
+			
+			strengthSlider.setVisible(tool.hasStrength);
+			strengthText.setVisible(tool.hasStrength);
+			
+			strengthSlider.setEnabled(tool.enableStrength);
+			strengthText.setEnabled(tool.enableStrength);
+		}
 	}
 
 
@@ -233,7 +330,7 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 	}
 
 	public void setAlpha(int alpha) {
-		alphaSlider.setValue(alpha);
+		strengthSlider.setValue(alpha);
 	}
 
 }

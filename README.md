@@ -2,6 +2,31 @@
 
 ## Changelog
 
+### 0.5
+
+#### Features
+
+- warp tool
+- hue tool
+- smooth tool
+- hotkeys to select tools
+- arrow keys to resize tools
+
+#### Changes
+
+- eyedropper averages color over region, weighted by alpha
+- current tool is highlighted
+- tools show region they will affect
+
+#### Bug Fixes
+
+- alpha and size were not reset properly when switching tools
+
+#### Internal Changes
+
+- restructured tools
+
+
 ### 0.4
 
 #### Features

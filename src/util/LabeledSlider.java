@@ -20,6 +20,8 @@ public class LabeledSlider extends JSlider implements ChangeListener {
 		addChangeListener(this);
 		setMinimumSize(new Dimension(width, height));
 		setPreferredSize(new Dimension(width, height));
+		
+		setFocusable(false); // because it's so freakin annoying
 	}
 	
 	public final JLabel label;
@@ -31,4 +33,16 @@ public class LabeledSlider extends JSlider implements ChangeListener {
 		label.setText("" + this.getValue());
 	}
 	
+	@Override
+	public void setVisible(boolean b) {
+		label.setVisible(b);
+		super.setVisible(b);
+	}
+	
+	@Override
+	public void setEnabled(boolean b) {
+		super.setEnabled(b);
+		if (label != null)
+			label.setEnabled(b);
+	}
 }
