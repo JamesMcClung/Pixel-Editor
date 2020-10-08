@@ -40,8 +40,10 @@ public class Eyedropper extends CircleTool {
 	private void pickColor(Layer l, Point pixel, ToolParams params) {
 		Color c = getAverageColor(l, pixel, currentSize);
 		params.app().colorPanel.setCurrentColor(c);
-		params.app().toolPanel.setAlpha(c.getAlpha());
-		initialAlpha = c.getAlpha();
+		params.app().toolPanel.setStrength(c.getAlpha());
+		setRealAlpha(c.getAlpha());
+		params.app().toolPanel.setNextAlpha(realAlpha);
+		realPreviewColor = c;
 	}
 	
 	/**
@@ -51,19 +53,15 @@ public class Eyedropper extends CircleTool {
 	 * @param params params
 	 */
 	private void previewColor(Layer l, Point pixel, ToolParams params) {
-		if (initialPreviewColor == null)
-			initialPreviewColor = params.app().colorPanel.getPreviewColor();
-		if (initialAlpha == -1)
-			initialAlpha = currentStrength;
 		Color c = getAverageColor(l, pixel, currentSize);
 		params.app().colorPanel.setPreviewColor(c);
-		params.app().toolPanel.setAlpha(c.getAlpha());
+		params.app().toolPanel.setStrength(c.getAlpha());
 	}
 
 	@Override
 	public ToolResult release(Layer l, Point pixel, ToolParams params) {
 		pickColor(l, pixel, params);
-		return null;
+		return super.release(l, pixel, params);
 	}
 
 	@Override
@@ -78,22 +76,32 @@ public class Eyedropper extends CircleTool {
 		return super.move(l, pixel, params);
 	}
 	
-	private Color initialPreviewColor = null;
-	private int initialAlpha = -1;
-
-	@Override
-	public ToolResult enter(Layer l, Point pixel, ToolParams params) {
-		initialPreviewColor = params.app().colorPanel.getPreviewColor();
-		initialAlpha = currentStrength;
-		return super.enter(l, pixel, params);
-	}
+	private Color realPreviewColor = null;
+	private int realAlpha;
 
 	@Override
 	public ToolResult exit(Layer l, Point pixel, ToolParams params) {
-		params.app().colorPanel.setPreviewColor(initialPreviewColor);
-		params.app().toolPanel.setAlpha(initialAlpha);
-		initialPreviewColor = null;
-		initialAlpha = -1;
+		params.app().colorPanel.setPreviewColor(realPreviewColor);
+		params.app().toolPanel.setStrength(realAlpha);
 		return super.exit(l, pixel, params);
+	}
+	
+	@Override
+	public ToolResult enter(Layer l, Point p, ToolParams params) {
+		return super.enter(l, p, params);
+	}
+	
+	/**
+	 * Sets the "real" alpha and preview colors. These are the values that carry over to the next tool, if applicable.
+	 * @param alpha real alpha
+	 * @param c real preview color
+	 */
+	public void initialize(int alpha, Color c) {
+		realPreviewColor = c;
+		setRealAlpha(alpha);
+	}
+	
+	private void setRealAlpha(int a) {
+		realAlpha = a;
 	}
 }

@@ -1,14 +1,23 @@
 package tools;
 
 import java.awt.Point;
+import java.awt.image.BufferedImage;
 
-import canvas.Layer;
+import util.Util;
 
-public class Eraser extends Brush {
+public class Eraser extends StrokeBrush {
+	
+	public Eraser() {
+		super();
+		strengthName = "Percent";
+		maxStrength = currentStrength = 100;
+	}
 	
 	@Override
-	public void applyBrush(Layer l, Point pixel, ToolParams params) {
-		l.setPixels(pixel, currentSize/2.0, Layer.ERASE_COLOR);
+	void applyBrushToPoint(BufferedImage im, Point p, ToolParams params) {
+		int rgb = im.getRGB(p.x, p.y);
+		int a = Util.a(rgb) * (maxStrength - currentStrength )/ maxStrength;
+		im.setRGB(p.x, p.y, rgb & 0x00ffffff | a << 24);
 	}
 
 }

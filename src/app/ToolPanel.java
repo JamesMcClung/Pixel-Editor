@@ -12,7 +12,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
-import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -32,6 +31,7 @@ import tools.Pencil;
 import tools.Smoother;
 import tools.Tool;
 import tools.Warper;
+import util.ConcreteAction;
 import util.Enabler;
 import util.GBC;
 import util.LabeledSlider;
@@ -42,29 +42,7 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 	public static final Color selectedColor = new Color(150, 190, 255);
 	
 	public ToolPanel(App app) {
-		// direct interactions with app
 		this.app = app;
-		app.addKeyBinding("UP", new AbstractAction() {
-			private static final long serialVersionUID = -4225429967635528669L;
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				int str = sizeSlider.getValue();
-				sizeSlider.setValue(str + 1);
-				if (currentTB.tool instanceof Renderable)
-					app.canvasPanel.repaint();
-			}
-		});
-		app.addKeyBinding("DOWN", new AbstractAction() {
-			private static final long serialVersionUID = -4225429967635528669L;
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				int str = sizeSlider.getValue();
-				sizeSlider.setValue(str - 1);
-				if (currentTB.tool instanceof Renderable)
-					app.canvasPanel.repaint();
-			}
-		});
-		
 		setLayout(new GridBagLayout());
 
 		// make panels
@@ -137,6 +115,19 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 		enabler.add(undoButton::setEnabled, app::canUndo);
 		enabler.add(redoButton::setEnabled, app::canRedo);
 		enabler.add(deselectButton::setEnabled, app.canvasPanel::hasSelection);
+		
+		// key bindings
+		app.addKeyBinding("ENTER", new ConcreteAction(e -> deselectButton.doClick()));
+		app.addKeyBinding("UP", new ConcreteAction(e -> {
+			int str = sizeSlider.getValue();
+			sizeSlider.setValue(str + 1);
+			sendMoveEvent(currentTB.tool);
+		}));
+		app.addKeyBinding("DOWN", new ConcreteAction(e -> {
+			int str = sizeSlider.getValue();
+			sizeSlider.setValue(str - 1);
+			sendMoveEvent(currentTB.tool);
+		}));
 	}
 	
 	
@@ -171,6 +162,14 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 		return new Tool.ToolParams(app.getCurrentColor(), app, e);
 	}
 	
+	private Tool.ToolParams getToolParams() {
+		Point mousePos = app.canvasPanel.getMousePosition();
+		if (mousePos == null)
+			return null;
+		MouseEvent e = new MouseEvent(app.canvasPanel, MouseEvent.MOUSE_MOVED, System.currentTimeMillis(), 0, mousePos.x, mousePos.y, 0, false);
+		return getToolParams(e);
+	}
+	
 	private Point getPointOnCanvas(MouseEvent e) {
 		return app.canvasPanel.getPointOnLayer(e.getPoint(), true, false); 
 	}
@@ -200,47 +199,56 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 		return true;
 	}
 	
+	private void sendMoveEvent(Tool tool) {
+		var moveParams = getToolParams();
+		if (moveParams != null)
+			handleToolUse(tool.move(getActiveLayer(), getPointOnCanvas(moveParams.e()), moveParams));
+	}
+	
 
 	@Override
 	public void mouseDragged(MouseEvent e) {
 		if (canUseTool() && handleToolUse(currentTB.tool.drag(getActiveLayer(), getPointOnCanvas(e), getToolParams(e))))
 				e.consume();
 	}
-
 	@Override
 	public void mouseMoved(MouseEvent e) {
 		if (canUseTool() && handleToolUse(currentTB.tool.move(getActiveLayer(), getPointOnCanvas(e), getToolParams(e))))
 				e.consume();
 	}
-
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		if (canUseTool() && handleToolUse(currentTB.tool.click(getActiveLayer(), getPointOnCanvas(e), getToolParams(e))))
 				e.consume();
 	}
-
 	@Override
 	public void mousePressed(MouseEvent e) {
 		if (canUseTool() && handleToolUse(currentTB.tool.press(getActiveLayer(), getPointOnCanvas(e), getToolParams(e))))
 			e.consume();
 	}
-
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		if (canUseTool() && handleToolUse(currentTB.tool.release(getActiveLayer(), getPointOnCanvas(e), getToolParams(e))))
 			e.consume();
 	}
-	
 	@Override
 	public void mouseEntered(MouseEvent e) {
 		if (canUseTool() && handleToolUse(currentTB.tool.enter(getActiveLayer(), getPointOnCanvas(e), getToolParams(e))))
 			e.consume();
 	}
-
 	@Override
 	public void mouseExited(MouseEvent e) { 
 		if (canUseTool() && handleToolUse(currentTB.tool.exit(getActiveLayer(), getPointOnCanvas(e), getToolParams(e))))
 			e.consume();
+	}
+	
+	public static final int NO_NEXT_ALPHA = -1;
+	private int nextAlpha = NO_NEXT_ALPHA;
+	public void setNextAlpha(int alpha) {
+		nextAlpha = alpha;
+	}
+	private boolean hasNextAlpha() {
+		return nextAlpha != NO_NEXT_ALPHA;
 	}
 	
 	
@@ -258,15 +266,7 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 			addActionListener(this);
 			
 			if (hotkey != null)
-				app.addKeyBinding(hotkey, new AbstractAction() {
-					private static final long serialVersionUID = -3450898524607129561L;
-
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						ToolButton.this.doClick();
-						app.canvasPanel.repaint();
-					}
-				});
+				app.addKeyBinding(hotkey, new ConcreteAction(this));
 		}
 		
 		
@@ -277,24 +277,40 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 		
 		// Methods
 		
+		private void makeCurrentTB() {
+			currentTB.setBackground(null);
+			currentTB = this;
+			setBackground(selectedColor);
+		}
+		
 		@SuppressWarnings("preview")
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			// jank to make pencil or marker use eyedropper's alpha when switching
-			if (currentTB.tool instanceof Eyedropper && 
-					(tool instanceof Pencil || tool instanceof Marker)) {
-				tool.currentStrength = currentTB.tool.currentStrength;
+			ToolButton lastTB = currentTB;
+			
+			// deal with situation where tool switches while over canvas panel
+			var moveParams = getToolParams();
+			if (moveParams != null) {
+				Point p = getPointOnCanvas(moveParams.e());
+				Layer active = getActiveLayer();
+				handleToolUse(currentTB.tool.exit(active, p, moveParams));
+				
+				makeCurrentTB();
+				
+				handleToolUse(tool.enter(active, p, moveParams));
+				handleToolUse(tool.move(active, p, moveParams));
+			} else {
+				makeCurrentTB();
 			}
 			
-			if (currentTB.tool instanceof Renderable r)
-				app.canvasPanel.removeRenderable(r);
-			if (tool instanceof Renderable r)
-				app.canvasPanel.addRenderable(r);
-			
-			// switch active tool button
-			currentTB.setBackground(null);
-			currentTB = ToolButton.this;
-			setBackground(selectedColor);
+			if (tool instanceof Eyedropper eye) {
+				int ai = lastTB.tool.hasAlpha() ? lastTB.tool.currentStrength : NO_NEXT_ALPHA;
+				eye.initialize(ai, app.getCurrentColor());
+			}
+			if (hasNextAlpha() && tool.hasAlpha()) {
+				tool.currentStrength = nextAlpha;
+			}
+				
 			
 			// reconfigure sliders
 			int size = tool.currentSize;
@@ -329,8 +345,8 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 		enabler.updateEnableds();
 	}
 
-	public void setAlpha(int alpha) {
-		strengthSlider.setValue(alpha);
+	public void setStrength(int str) {
+		strengthSlider.setValue(str);
 	}
 
 }

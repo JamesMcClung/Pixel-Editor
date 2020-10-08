@@ -16,6 +16,28 @@ import javax.swing.SwingConstants;
 
 public class Util {
 	
+	public static int distSq(Point p1, Point p2) {
+		int dx = p1.x - p2.x;
+		int dy = p1.y - p2.y;
+		return dx*dx + dy*dy;
+	}
+	
+	public static int r(int rgb) {
+		return rgb >>> 16 & 0xff;
+	}
+	public static int g(int rgb) {
+		return rgb >>> 8 & 0xff;
+	}
+	public static int b(int rgb) {
+		return rgb & 0xff;
+	}
+	public static int a(int rgb) {
+		return rgb >>> 24 & 0xff;
+	}
+	public static int argb(int a, int r, int g, int b) {
+		return a << 24 | r << 16 | g << 8 | b;
+	}
+	
 	public static Point max(Point a, Point b) {
 		return new Point(Math.max(a.x, b.x), Math.max(a.y, b.y));
 	}

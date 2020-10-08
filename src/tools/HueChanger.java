@@ -1,28 +1,23 @@
 package tools;
 
-import java.awt.Color;
 import java.awt.Point;
 import java.awt.image.BufferedImage;
 
-import canvas.Layer;
-
-public class HueChanger extends Brush {
+public class HueChanger extends StrokeBrush {
 	
 	public HueChanger() {
 		super();
 		hasStrength = false;
 	}
-	
-	public void applyBrush(Layer l, Point pixel, ToolParams params) {
-		l.doThingInCircle(pixel, currentSize / 2d, (im, p) -> changeHueHelper(im, p, params.color()));
-	}
-	
-	public void changeHueHelper(BufferedImage im, Point p, Color c) {
+
+	@Override
+	void applyBrushToPoint(BufferedImage im, Point p, ToolParams params) {
 		int imrgb = im.getRGB(p.x, p.y);
 		int imr = imrgb >> 16 & 0xff;
 		int img = imrgb >> 8 & 0xff;
 		int imb = imrgb & 0xff;
 		
+		var c = params.color();
 		int r = c.getRed(), g = c.getGreen(), b = c.getBlue();
 		
 		double immax = Math.max(imr, Math.max(img, imb));

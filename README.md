@@ -2,6 +2,21 @@
 
 ## Changelog
 
+### 0.5.1
+
+#### Features
+- erase respects tool strength
+- press enter to drop selection
+
+#### Changes
+- warp tool does not rewarp pixels from same stroke
+- pencil can mix with colors below if alpha is low
+
+#### Bug Fixes
+- switching tools with hotkeys no longer causes visual bugs
+- fixed marker
+- eyedropper did not work properly
+
 ### 0.5
 
 #### Features

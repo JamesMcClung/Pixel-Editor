@@ -1,20 +1,21 @@
 package tools;
 
-import java.awt.Graphics2D;
 import java.awt.Point;
 
 import canvas.Layer;
 import util.Util;
 
 public class Marker extends Brush {
-	
-	public void applyBrush(Layer l, Point pixel, ToolParams params) {
-		Graphics2D g = l.getGraphics();
-		Util.enableAntiAliasing(g);
-		g.setColor(Tool.getFadedColor(params.color(), currentStrength));
-		int x = pixel.x - currentSize / 2;
-		int y = pixel.y - currentSize / 2;
-		g.fillOval(x, y, currentSize, currentSize);
-		g.dispose();
+
+	@Override
+	protected void applyBrush(Layer l, Point pixel, ToolParams params) {
+		int maxA = params.color().getAlpha();
+		int rgbNoA = params.color().getRGB() & 0x00ffffff;
+		double rSquared = Math.pow(currentSize / 2d, 2) + 2d/currentSize; // last term is so that 2-diameter circle works
+		l.doThingInCircle(pixel, currentSize / 2d, (im, p) -> {
+			int a = (int) Math.max(0, maxA * (rSquared - Util.distSq(pixel, p)) / rSquared);
+			im.setRGB(p.x, p.y, Pencil.mixRGB(im.getRGB(p.x, p.y), rgbNoA | a<<24));
+		});
 	}
+	
 }

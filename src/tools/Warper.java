@@ -4,33 +4,23 @@ import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.util.Random;
 
-import canvas.Layer;
-
-public class Warper extends Brush {
+public class Warper extends StrokeBrush {
 	
 	public Warper() {
 		super();
 		strengthName = "Percent";
 		maxStrength = 100;
-		currentStrength = 50;
+		currentStrength = 25;
 	}
 	
 	private final Random random = new Random();
-	private final Point lastPixel = new Point(-1, -1);
 
 	@Override
-	public void applyBrush(Layer l, Point pixel, ToolParams params) {
-		if (!lastPixel.equals(pixel)) {
-			l.doThingInCircle(pixel, currentSize/2d, (im, p) -> warp(im, p, (double) currentStrength / maxStrength));
-			lastPixel.setLocation(pixel);
-		}
-	}
-	
-	private void warp(BufferedImage im, Point p, double percent) {
+	void applyBrushToPoint(BufferedImage im, Point p, ToolParams params) {
 		int rgb = im.getRGB(p.x, p.y);
 		
 		boolean decrease = random.nextBoolean(); // whether to decrease or increase
-		double factor = 1 + Math.pow(percent * random.nextDouble(), 1);
+		double factor = 1 + Math.pow(random.nextDouble() * currentStrength / maxStrength, 1);
 		if (decrease)
 			factor = 1 / factor;
 		
@@ -45,14 +35,6 @@ public class Warper extends Brush {
 		
 		rgb = (rgb & 0xff000000) | r << 16 |  g << 8 |  b;
 		im.setRGB(p.x, p.y, rgb);
-	}
-	
-	
-
-	@Override
-	public ToolResult release(Layer l, Point pixel, ToolParams params) {
-		lastPixel.setLocation(-1, -1);
-		return super.release(l, pixel, params);
 	}
 
 }

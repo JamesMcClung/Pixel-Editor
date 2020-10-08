@@ -58,6 +58,15 @@ public abstract class Tool {
 		return null;
 	}
 	
+	public String getStrengthName() {
+		if (!hasStrength)
+			return null;
+		return strengthName;
+	}
+	public boolean hasAlpha() {
+		return getStrengthName() == "Alpha";
+	}
+	
 	
 	
 	public static Color getFadedColor(Color c, int alpha) {
