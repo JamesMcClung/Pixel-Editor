@@ -8,13 +8,13 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
-import java.awt.image.RasterFormatException;
 import java.io.File;
+import java.util.Iterator;
 
 import io.IOUtil;
 import util.Util;
 
-public class Spritesheet extends Layer {
+public class Spritesheet extends Layer implements Iterable<Layer> {
 	
 	public Spritesheet(Dimension spriteDim, Dimension nSprites) {
 		this(null, new BufferedImage(spriteDim.width * nSprites.width, spriteDim.height * nSprites.height, BufferedImage.TYPE_INT_ARGB), spriteDim);
@@ -38,25 +38,25 @@ public class Spritesheet extends Layer {
 	
 	private File file;
 	private final Dimension spriteDim; // the dimensions in pixels of each sprite
-	private final Point activeSpriteIndex = new Point(0, 0);
+	private final Point currentSpriteIndex = new Point(0, 0);
 	
 	
 	// methods
 	
+	public Layer getSprite(Point index) {
+		return cropped(new Point(index.x * spriteDim.width, index.y * spriteDim.height), spriteDim);
+	}
+	
+	public void setCurrentSprite(Point index) {
+		currentSpriteIndex.setLocation(index);
+	}
+	
 	/**
-	 * Constructs and returns a view of the most recently selected sprite on the spritesheet.
+	 * Constructs and returns a view of the current sprite.
 	 * @return a Layer with the view of the sprite
 	 */
-	public Layer getSprite() {
-		try {
-			return new Layer(getImage().getSubimage(activeSpriteIndex.x * spriteDim.width, activeSpriteIndex.y * spriteDim.height, spriteDim.width, spriteDim.height));
-		} catch (RasterFormatException e) {
-			e.printStackTrace();
-			System.out.println("sprite index: " + activeSpriteIndex.toString());
-			System.out.println("sprite dims: " + spriteDim.toString());
-			System.out.println("image dims: " + getImageDim().toString());
-			return null;
-		}
+	public Layer getCurrentSprite() {
+		return getSprite(currentSpriteIndex);
 	}
 
 	/**
@@ -64,11 +64,11 @@ public class Spritesheet extends Layer {
 	 * @param spritex the coordinate of the sprite on the sheet (e.g. (0,1))
 	 * @return a Layer with the view of the sprite, or <code>null</code> if out of bounds.
 	 */
-	public Layer getSprite(Point spriteIndex) {
+	public Layer moveSprite(Point spriteIndex) {
 		if (!isSpriteIndexValid(spriteIndex))
 			return null;
-		activeSpriteIndex.setLocation(spriteIndex);
-		return getSprite();
+		setCurrentSprite(spriteIndex);
+		return getCurrentSprite();
 	}
 	
 	/**
@@ -76,11 +76,15 @@ public class Spritesheet extends Layer {
 	 * @param relativePos amount to the right
 	 * @return a Layer with the view of the sprite
 	 */
-	public Layer getSpriteRelative(int relativePos) {
+	public Layer moveSpriteRelative(int relativePos) {
+		return moveSprite(getIndexAfter(currentSpriteIndex, relativePos));
+	}
+	
+	private Point getIndexAfter(Point index, int spritesAfter) {
 		Dimension ssDim = getSSDim();
-		int spritex = modPositive(activeSpriteIndex.x + relativePos, ssDim.width);
-		int spritey = modPositive(activeSpriteIndex.y + Math.floorDiv(activeSpriteIndex.x + relativePos, ssDim.width), ssDim.height);
-		return getSprite(new Point(spritex, spritey));
+		int spritex = modPositive(index.x + spritesAfter, ssDim.width);
+		int spritey = modPositive(index.y + Math.floorDiv(index.x + spritesAfter, ssDim.width), ssDim.height);
+		return new Point(spritex, spritey);
 	}
 	
 	public boolean isSpriteIndexValid(Point p) {
@@ -142,7 +146,7 @@ public class Spritesheet extends Layer {
 		
 		// move active sprite if necessary
 		Dimension newSSDim = getSSDim();
-		activeSpriteIndex.move(Math.min(activeSpriteIndex.x, newSSDim.width-1), Math.min(activeSpriteIndex.y, newSSDim.height-1));
+		currentSpriteIndex.move(Math.min(currentSpriteIndex.x, newSSDim.width-1), Math.min(currentSpriteIndex.y, newSSDim.height-1));
 		
 		// secretly sign the image with the new dimension
 		IOUtil.addSpriteDimSignature(getImage(), d);
@@ -163,11 +167,32 @@ public class Spritesheet extends Layer {
 	}
 	
 	public Point getActiveSpriteIndex() {
-		return new Point(activeSpriteIndex);
+		return new Point(currentSpriteIndex);
 	}
 
 	public void setSpriteIndex(Point spriteIndex) {
-		this.activeSpriteIndex.setLocation(spriteIndex);
+		this.currentSpriteIndex.setLocation(spriteIndex);
+	}
+
+	@Override
+	public Iterator<Layer> iterator() {
+		return new Iterator<Layer>() {
+			private boolean first = true; 
+			private Point index = new Point();
+
+			@Override
+			public boolean hasNext() {
+				return first || !index.equals(new Point());
+			}
+
+			@Override
+			public Layer next() {
+				var l = getSprite(index);
+				first = false;
+				index.setLocation(getIndexAfter(index, 1));
+				return l;
+			}
+		};
 	}
 	
 	

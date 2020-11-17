@@ -1,4 +1,4 @@
-package util;
+package myawt;
 
 import java.awt.Dimension;
 
@@ -6,6 +6,8 @@ import javax.swing.JLabel;
 import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+
+import util.Util;
 
 public class LabeledSlider extends JSlider implements ChangeListener {
 	private static final long serialVersionUID = 7937015603321589214L;

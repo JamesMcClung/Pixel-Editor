@@ -9,7 +9,9 @@ import java.awt.Point;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import util.Cache;
 import util.Util;
@@ -216,6 +218,25 @@ public class Layer implements BitMask {
 		return new AffineTransform(scale, 0, 0, scale, loc.x, loc.y);
 	}
 	
+	/**
+	 * Calculates the mean pixel location, weighted by alpha.
+	 * @return mean pixel
+	 */
+	public Point getMeanPixel() {
+		Point mp = new Point();
+		int alpha; 
+		int totalAlpha = 0;
+		for (int i = 0; i < getWidth(); i++)
+			for (int j = 0; j < getHeight(); j++) {
+				alpha = Util.getAlpha(image.getRGB(i, j));
+				mp.translate(i * alpha, j * alpha);
+				totalAlpha += alpha;
+			}
+		mp.x /= totalAlpha;
+		mp.y /= totalAlpha;
+		return mp;
+	}
+	
 	public PixelMask getMonochromeRegion(Point pixel, double searchRadius, List<Integer> otherRGBs) {
 		final List<Integer> rgbs = otherRGBs == null ? new ArrayList<>() : otherRGBs;
 		
@@ -223,6 +244,7 @@ public class Layer implements BitMask {
 		
 		PixelMask mask = new PixelMask(getSize());
 		PixelMask explored = new PixelMask(getSize());
+		Set<Point> frontier1 = new HashSet<>(), frontier2 = new HashSet<>();
 		mask.set(pixel, true);
 		PixelMask.Condition condition = (p, rgb2) -> {
 			for (Integer rgb : rgbs)
@@ -231,18 +253,25 @@ public class Layer implements BitMask {
 			return false;
 		};
 		
-		explore(pixel, searchRadius, mask, explored, condition);
+		// find the points
+		frontier1.add(new Point(pixel));
+		while (!frontier1.isEmpty()) {
+			final Set<Point> frontier = frontier2;
+			for (Point p : frontier1) {
+				explored.set(p, true);
+				doThingInCircle(p, searchRadius, (image, p2) -> {
+					if (isInBounds(p2) && !explored.get(p2.x, p2.y) && condition.accept(null, image.getRGB(p2.x, p2.y))) {
+						mask.set(p2.x, p2.y, true);
+						frontier.add(new Point(p2));
+					}
+				});
+			}
+			frontier1.clear();
+			frontier2 = frontier1;
+			frontier1 = frontier;
+		}
 		
 		return mask;
-	}
-	private void explore(Point p, double searchRadius, PixelMask mask, PixelMask explored, PixelMask.Condition condition) {
-		explored.set(p.x, p.y, true);
-		doThingInCircle(p, searchRadius, (image, pixel) -> {
-			if (isInBounds(pixel) && !explored.get(pixel.x, pixel.y) && condition.accept(null, image.getRGB(pixel.x, pixel.y))) {
-				mask.set(pixel.x, pixel.y, true);
-				explore(pixel, searchRadius, mask, explored, condition);
-			}
-		});
 	}
 	
 	/**
@@ -253,6 +282,14 @@ public class Layer implements BitMask {
 	public boolean isInBounds(Point pixel) {
 		return pixel.x > -1 && pixel.y > -1 && pixel.x < image.getWidth() && pixel.y < image.getHeight();
 	}
+	
+	public boolean hasVisibleContent() {
+		for (int i  = 0; i < getWidth(); i++)
+			for (int j = 0; j < getHeight(); j++)
+				if (Util.getAlpha(image.getRGB(i, j)) > 0)
+					return true;
+		return false;
+	}
 
 	public void clearImage() {
 		Point pixel = new Point();
@@ -260,7 +297,112 @@ public class Layer implements BitMask {
 			for (pixel.y = 0; pixel.y < getHeight(); pixel.y++)
 				setPixel(pixel, ERASE_COLOR);
 	}
-	 
+	
+	/**
+	 * Returns a new Layer that is a rotated version of this layer, rotated 90 degrees clockwise.
+	 * @return the layer
+	 */
+	public Layer rotatedCW() {
+		Layer rotated = new Layer(getHeight(), getWidth());
+		for (int i = 0; i < getWidth(); i++)
+			for (int j = 0; j < getHeight(); j++)
+				rotated.image.setRGB(j, i, image.getRGB(i, getHeight() - 1 - j));
+		return rotated;
+	}
+	/**
+	 * Returns a new Layer that is a rotated version of this layer, rotated 90 degrees counterclockwise.
+	 * @return the layer
+	 */
+	public Layer rotatedCCW() {
+		Layer rotated = new Layer(getHeight(), getWidth());
+		for (int i = 0; i < getWidth(); i++)
+			for (int j = 0; j < getHeight(); j++)
+				rotated.image.setRGB(j, i, image.getRGB(getWidth() - 1 - i, j));
+		return rotated;
+	}
+	
+	public void reflectLeftRight() {
+		int rgb; 
+		for (int i = 0; i < getWidth()/2; i++) {
+			for (int j = 0; j < getHeight(); j++) {
+				rgb = image.getRGB(i, j);
+				image.setRGB(i, j, image.getRGB(getWidth() - 1 - i, j));
+				image.setRGB(getWidth() - 1 - i, j, rgb);
+			}
+		}
+	}
+	public void reflectUpDown() {
+		int rgb; 
+		for (int i = 0; i < getWidth(); i++) {
+			for (int j = 0; j < getHeight()/2; j++) {
+				rgb = image.getRGB(i, j);
+				image.setRGB(i, j, image.getRGB(i, getHeight() - 1 - j));
+				image.setRGB(i, getHeight() - 1 - j, rgb);
+			}
+		}
+	}
+	
+	/**
+	 * Creates a new layer from this one, scaled up or down as specified.
+	 * The new layer is not a view of this one.
+	 * @param sx scale x
+	 * @param sy scale y
+	 * @return the layer
+	 */
+	public Layer scaled(float sx, float sy) {
+		var scaledSize = getScaledSize(sx, sy);
+		BufferedImage scaledIm = new BufferedImage(scaledSize.width, scaledSize.height, BufferedImage.TYPE_INT_ARGB);
+		var g = scaledIm.createGraphics();
+		var tf = new AffineTransform(1d*scaledSize.width / image.getWidth(), 0, 0, 1d*scaledSize.height / image.getHeight(), 0, 0);
+		g.drawImage(image, tf, null);
+		g.dispose();
+		return new Layer(scaledIm);
+	}
+	/**
+	 * Returns what the scaled size would be (as in {@link #scaled(float, float)}).
+	 * @param sx scale x
+	 * @param sy scale y
+	 * @return the dimension
+	 */
+	public Dimension getScaledSize(float sx, float sy) {
+		var scaledSize = getSize();
+		scaledSize.width = Math.round(scaledSize.width * sx);
+		scaledSize.height = Math.round(scaledSize.height * sy);
+		return scaledSize;
+	}
+	
+	/**
+	 * Finds and returns the minimal region containing all visible pixels
+	 * @return a view of the region as a layer backed by this image
+	 */
+	public Layer shrinkwrapped() {
+		Point min = new Point(image.getWidth(), image.getHeight());
+		Point max = new Point(-1, -1);
+		Point p = new Point();
+		for (p.x = 0; p.x < image.getWidth(); p.x++) {
+			for (p.y = 0; p.y < image.getHeight(); p.y++) {
+				int alpha = Util.getAlpha(getRGB(p));
+				if (alpha > 0) {
+					min.setLocation(Util.min(min, p));
+					max.setLocation(Util.max(max, p));
+				}
+			}
+		}
+		return cropped(min, max);
+	}
+	/**
+	 * Returns a cropped version of this layer, backed by the same image.
+	 * @param p1 top-left, inclusive
+	 * @param p2 bottom-right, inclusive
+	 * @return the layer
+	 */
+	public Layer cropped(Point p1, Point p2) {
+		return new Layer(image.getSubimage(p1.x, p1.y, p2.x-p1.x+1, p2.y-p1.y+1));
+	}
+	public Layer cropped(Point p, Dimension d) {
+		return new Layer(image.getSubimage(p.x, p.y, d.width, d.height));
+	}
+
 	
 	// Util Methods
 	public static interface ThingDoer {

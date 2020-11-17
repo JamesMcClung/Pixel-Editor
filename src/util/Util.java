@@ -7,11 +7,18 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.TexturePaint;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.WritableRaster;
+import java.io.File;
 
+import javax.swing.AbstractAction;
+import javax.swing.JComponent;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 
 public class Util {
@@ -143,6 +150,26 @@ public class Util {
 	}
 	
 	/**
+	 * Binds the given key to the given action.
+	 * @param component to bind key to
+	 * @param key a character, e.g. "A" (case sensitive!)
+	 * @param action what happens when key is pressed
+	 */
+	public static void addKeyBinding(JComponent comp, String key, ActionListener action) {
+		var inputMap = comp.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		var actionMap = comp.getActionMap();
+		
+		inputMap.put(KeyStroke.getKeyStroke(key), key);
+		actionMap.put(key, new AbstractAction() {
+			private static final long serialVersionUID = -4711311088424057197L;
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				action.actionPerformed(e);
+			}
+		});
+	}
+	
+	/**
 	 * Returns a copy of the given image.
 	 * @param bi an image to copy
 	 * @return a copy
@@ -152,6 +179,14 @@ public class Util {
 	    boolean isAlphaPremultiplied = cm.isAlphaPremultiplied();
 	    WritableRaster raster = bi.copyData(bi.getRaster().createCompatibleWritableRaster());
 	    return new BufferedImage(cm, raster, isAlphaPremultiplied, null);
+	}
+	
+	
+	public static void changeExtension(JFileChooser fc, String newExt) {
+		String path = fc.getSelectedFile().getAbsolutePath();
+		int lastdot = path.lastIndexOf('.');
+		path = path.substring(0, lastdot+1) + newExt;
+		fc.setSelectedFile(new File(path));
 	}
 	
 }

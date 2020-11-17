@@ -34,10 +34,10 @@ import javax.swing.event.ListSelectionEvent;
 
 import io.ColorPalette;
 import io.Memory;
-import util.Button2Field;
-import util.GBC;
-import util.LabeledSlider;
-import util.MyDefaultListModel;
+import myawt.Button2Field;
+import myawt.GBC;
+import myawt.LabeledSlider;
+import myawt.MyDefaultListModel;
 import util.Util;
 
 public class ColorPanel extends JPanel {

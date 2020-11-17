@@ -2,6 +2,21 @@
 
 ## Changelog
 
+### 0.6
+
+#### Features
+- cut, copy, paste, and delete selections
+- rotate selection in quarter turns
+- reflect selection
+- export sprite, selection, or spritesheet
+- export as animated gif
+
+#### Bug Fixes
+- crash when selecting tool while no layer is present
+- stack overflow when using color select on too big a region
+- marker did not respect alpha
+- could not save images as jpg/jpeg
+
 ### 0.5.1
 
 #### Features

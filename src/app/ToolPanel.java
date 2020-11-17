@@ -7,18 +7,20 @@ import java.awt.Color;
 import java.awt.GridBagLayout;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
-import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 
 import canvas.Layer;
+import myawt.GBC;
+import myawt.LabeledSlider;
+import myawt.MyButton;
+import myawt.SimpleButton;
 import tools.BoxSelector;
 import tools.Bucket;
 import tools.ColorSelector;
@@ -31,10 +33,8 @@ import tools.Pencil;
 import tools.Smoother;
 import tools.Tool;
 import tools.Warper;
-import util.ConcreteAction;
 import util.Enabler;
-import util.GBC;
-import util.LabeledSlider;
+import util.Util;
 
 public class ToolPanel extends JPanel implements MouseListener, MouseMotionListener {
 	private static final long serialVersionUID = 4242175503749643716L;
@@ -74,30 +74,37 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 		var smoothButton = new ToolButton("Smooth", new Smoother(), "S");
 		var colorSelectButton = new ToolButton("CSelect", new ColorSelector(), "C");
 		var boxSelectButton = new ToolButton("BSelect", new BoxSelector(), "B");
-		var deselectButton = new JButton("Drop");
-		deselectButton.addActionListener(e -> {app.canvasPanel.dropSelection(); app.repaintCanvas(); app.saveState();});
+		var dropButton = new SimpleButton("Drop", "ENTER", e -> {app.canvasPanel.dropSelection(); app.repaintCanvas(); app.saveState();});
 		var dragButton = new ToolButton("Drag", new Dragger(), "D");
+		var deleteButton = new SimpleButton("Delete", "BACK_SPACE", e -> {app.canvasPanel.deleteSelection(); app.repaintCanvas(); app.saveState();});
+		var cutButton = new SimpleButton("Cut", null, e -> {app.canvasPanel.cut(); app.repaintCanvas(); app.saveState();});
+		var copyButton = new SimpleButton("Copy", null, e -> app.canvasPanel.copy());
+		var pasteButton = new SimpleButton("Paste", null, e -> {app.canvasPanel.paste(); app.repaintCanvas(); app.saveState();});
 		
-		var undoButton = new JButton("Undo");
-		undoButton.addActionListener((e) -> app.undo());
-		var redoButton = new JButton("Redo");
-		redoButton.addActionListener((e) -> app.redo());
+		var undoButton = new SimpleButton("Undo", null, e -> app.undo());
+		var redoButton = new SimpleButton("Redo", null, e -> app.redo());
 		
 		GBC toolButtonGBC = new GBC().weight(1,0).fill(GBC.BOTH);
+		GBC sepGBC = new GBC().dim(4, 1).fill(GBC.BOTH).weight(1, 0).insets(0, hpad, 0, hpad);
 		int i = 0, j = 0;
 		GBC.addComp(toolButtonPanel::add, i=0, j=0, pencilButton, toolButtonGBC);
 		GBC.addComp(toolButtonPanel::add, ++i, j, eraserButton, toolButtonGBC);
 		GBC.addComp(toolButtonPanel::add, ++i, j, markerButton, toolButtonGBC);
 		GBC.addComp(toolButtonPanel::add, ++i, j, bucketButton, toolButtonGBC);
-		GBC.addComp(toolButtonPanel::add, i=0, j=1, eyedropperButton, toolButtonGBC);
+		GBC.addComp(toolButtonPanel::add, i=0, ++j, eyedropperButton, toolButtonGBC);
 		GBC.addComp(toolButtonPanel::add, ++i, j, hueButton, toolButtonGBC);
 		GBC.addComp(toolButtonPanel::add, ++i, j, warpButton, toolButtonGBC);
 		GBC.addComp(toolButtonPanel::add, ++i, j, smoothButton, toolButtonGBC);
-		GBC.addComp(toolButtonPanel::add, i=0, j=2, colorSelectButton, toolButtonGBC);
+		GBC.addComp(toolButtonPanel::add, i=0, ++j, new JSeparator(SwingConstants.HORIZONTAL), sepGBC);
+		GBC.addComp(toolButtonPanel::add, i=0, ++j, colorSelectButton, toolButtonGBC);
 		GBC.addComp(toolButtonPanel::add, ++i, j, boxSelectButton, toolButtonGBC);
 		GBC.addComp(toolButtonPanel::add, ++i, j, dragButton, toolButtonGBC);
-		GBC.addComp(toolButtonPanel::add, ++i, j, deselectButton, toolButtonGBC);
-		GBC.addComp(toolButtonPanel::add, i=0, ++j, new JSeparator(SwingConstants.HORIZONTAL), new GBC().dim(3, 1).fill(GBC.HORIZONTAL).weight(1, 0).insets(0, hpad, 0, hpad));
+		GBC.addComp(toolButtonPanel::add, ++i, j, dropButton, toolButtonGBC);
+		GBC.addComp(toolButtonPanel::add, i=0, ++j, deleteButton, toolButtonGBC);
+		GBC.addComp(toolButtonPanel::add, ++i, j, cutButton, toolButtonGBC);
+		GBC.addComp(toolButtonPanel::add, ++i, j, copyButton, toolButtonGBC);
+		GBC.addComp(toolButtonPanel::add, ++i, j, pasteButton, toolButtonGBC);
+		GBC.addComp(toolButtonPanel::add, i=0, ++j, new JSeparator(SwingConstants.HORIZONTAL), sepGBC);
 		GBC.addComp(toolButtonPanel::add, i=0, ++j, undoButton, toolButtonGBC);
 		GBC.addComp(toolButtonPanel::add, ++i, j, redoButton, toolButtonGBC);
 		
@@ -114,20 +121,21 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 		// enabling
 		enabler.add(undoButton::setEnabled, app::canUndo);
 		enabler.add(redoButton::setEnabled, app::canRedo);
-		enabler.add(deselectButton::setEnabled, app.canvasPanel::hasSelection);
+		enabler.add(app.canvasPanel::hasSelection, dropButton::setEnabled, deleteButton::setEnabled);
+		enabler.add(app.canvasPanel::hasLayer, cutButton::setEnabled, copyButton::setEnabled);
+		enabler.add(app.canvasPanel::canPaste, pasteButton::setEnabled);
 		
 		// key bindings
-		app.addKeyBinding("ENTER", new ConcreteAction(e -> deselectButton.doClick()));
-		app.addKeyBinding("UP", new ConcreteAction(e -> {
+		Util.addKeyBinding(this, "UP", e -> {
 			int str = sizeSlider.getValue();
 			sizeSlider.setValue(str + 1);
 			sendMoveEvent(currentTB.tool);
-		}));
-		app.addKeyBinding("DOWN", new ConcreteAction(e -> {
+		});
+		Util.addKeyBinding(this, "DOWN", e -> {
 			int str = sizeSlider.getValue();
 			sizeSlider.setValue(str - 1);
 			sendMoveEvent(currentTB.tool);
-		}));
+		});
 	}
 	
 	
@@ -255,18 +263,14 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 	/**
 	 * A button associated with a tool, e.g. the pencil button. 
 	 */
-	private class ToolButton extends JButton implements ActionListener {
+	private class ToolButton extends MyButton {
 		private static final long serialVersionUID = -1156021027317278350L;
 		
 		public ToolButton(String name, Tool tool, String hotkey) {
-			super(name);
+			super(name, hotkey);
 			this.tool = tool;
 			
 			this.setOpaque(true); // so it can be highlighted by color
-			addActionListener(this);
-			
-			if (hotkey != null)
-				app.addKeyBinding(hotkey, new ConcreteAction(this));
 		}
 		
 		
@@ -290,8 +294,8 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 			
 			// deal with situation where tool switches while over canvas panel
 			var moveParams = getToolParams();
-			if (moveParams != null) {
-				Point p = getPointOnCanvas(moveParams.e());
+			Point p;
+			if (moveParams != null && (p = getPointOnCanvas(moveParams.e())) != null) {
 				Layer active = getActiveLayer();
 				handleToolUse(currentTB.tool.exit(active, p, moveParams));
 				

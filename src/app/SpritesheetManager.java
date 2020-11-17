@@ -10,7 +10,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.NoninvertibleTransformException;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,9 +23,8 @@ import javax.swing.Timer;
 
 import canvas.Layer;
 import canvas.Spritesheet;
+import myawt.GBC;
 import util.Enabler;
-import util.GBC;
-import util.Util;
 
 public class SpritesheetManager extends JPanel {
 	private static final long serialVersionUID = 6720331984243667952L;
@@ -68,12 +66,6 @@ public class SpritesheetManager extends JPanel {
 		var clearButton = new JButton("Clear");
 		clearButton.addActionListener((e) -> clearSprite());
 		
-		var copyButton = new JButton("Copy");
-		copyButton.addActionListener((e) -> copySprite());
-		var cutButton = new JButton("Cut");
-		cutButton.addActionListener((e) -> cutSprite());
-		var pasteButton = new JButton("Paste");
-		pasteButton.addActionListener((e) -> pasteSprite());
 		
 		int pad = -Constants.pad/2 *0; // tinker with this
 		int hpad = pad/2;
@@ -81,10 +73,7 @@ public class SpritesheetManager extends JPanel {
 		GBC.addComp(buttonPanel::add, 1, 0, rbutton, new GBC().insets(hpad, hpad, hpad, hpad));
 		GBC.addComp(buttonPanel::add, 2, 0, playButton, new GBC().insets(hpad, hpad, hpad, hpad));
 		GBC.addComp(buttonPanel::add, 3, 0, fpsSlider, new GBC().insets(hpad, hpad, hpad, pad));
-		GBC.addComp(buttonPanel::add, 0, 1, cutButton, new GBC().insets(hpad, hpad, hpad, hpad));
-		GBC.addComp(buttonPanel::add, 1, 1, copyButton, new GBC().insets(hpad, hpad, hpad, hpad));
-		GBC.addComp(buttonPanel::add, 2, 1, pasteButton, new GBC().insets(hpad, hpad, hpad, hpad));
-		GBC.addComp(buttonPanel::add, 3, 1, clearButton, new GBC().insets(pad, hpad, hpad, pad));
+		GBC.addComp(buttonPanel::add, 1, 1, clearButton, new GBC().insets(pad, hpad, hpad, pad));
 		
 		// Text fields
 		var textPanel = new JPanel(new GridBagLayout());
@@ -121,10 +110,7 @@ public class SpritesheetManager extends JPanel {
 						lbutton::setEnabled,
 						rbutton::setEnabled,
 						playButton::setEnabled,
-						clearButton::setEnabled,
-						cutButton::setEnabled,
-						copyButton::setEnabled,
-						pasteButton::setEnabled
+						clearButton::setEnabled
 				);
 		enabler.add(new Enabler.Enableable[] {
 						lbutton::setEnabled,
@@ -149,28 +135,11 @@ public class SpritesheetManager extends JPanel {
 	private final JPanel previewPanel;
 	private final JTextField spriteWidthField, spriteHeightField;
 	
-	private BufferedImage clipboard = null;
-	
 	
 	// Methods
 	
-	private void copySprite() {
-		clipboard = Util.deepCopy(currentSheet.getSprite().getImage()); // deep copy so it isnt edited
-	}
-	
-	private void cutSprite() {
-		copySprite();
-		clearSprite();
-	}
-	
-	private void pasteSprite() {
-		currentSheet.getSprite().drawImage(clipboard, new Point());
-		app.saveState();
-		app.repaintCanvas();
-	}
-	
 	public void clearSprite() {
-		currentSheet.getSprite().clearImage();
+		currentSheet.getCurrentSprite().clearImage();
 		app.saveState();
 		app.repaintCanvas();
 	}
@@ -187,10 +156,10 @@ public class SpritesheetManager extends JPanel {
 	}
 	
 	private void nextSprite() {
-		app.viewSprite(currentSheet.getSpriteRelative(1));
+		app.viewSprite(currentSheet.moveSpriteRelative(1));
 	}
 	private void prevSprite() {
-		app.viewSprite(currentSheet.getSpriteRelative(-1));
+		app.viewSprite(currentSheet.moveSpriteRelative(-1));
 	}
 	
 	/**
@@ -207,6 +176,10 @@ public class SpritesheetManager extends JPanel {
 		} catch (NumberFormatException e) {
 			return new Dimension(-1, -1);
 		}
+	}
+	
+	int getDelay() {
+		return playTimer.getDelay();
 	}
 	
 	/**
@@ -240,7 +213,7 @@ public class SpritesheetManager extends JPanel {
 	private void setSpriteDim(Spritesheet s, Dimension dim) {
 		s.setSpriteDim(dim);
 		if (s.equals(currentSheet))
-			app.viewSprite(currentSheet.getSprite());
+			app.viewSprite(currentSheet.getCurrentSprite());
 	}
 	
 	/**
@@ -323,7 +296,7 @@ public class SpritesheetManager extends JPanel {
 			}
 			Dimension spriteDim = currentSheet.getSpriteDim();
 			Point spriteIndex = new Point(pixel.x / spriteDim.width, pixel.y / spriteDim.height);
-			app.viewSprite(currentSheet.getSprite(spriteIndex));
+			app.viewSprite(currentSheet.moveSprite(spriteIndex));
 		}
 
 		@Override

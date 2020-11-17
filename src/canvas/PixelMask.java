@@ -125,7 +125,10 @@ public class PixelMask implements BitMask {
 
 	
 	// other operations
-	
+	/**
+	 * Flips every bit.
+	 * @return this mask
+	 */
 	public PixelMask invert() {
 		for (int i = 0; i < width; i++)
 			for (int j = 0; j < height; j++)

@@ -6,7 +6,7 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.geom.AffineTransform;
 
-import util.Line;
+import myawt.Line;
 import util.XORSet;
 
 public interface BitMask {

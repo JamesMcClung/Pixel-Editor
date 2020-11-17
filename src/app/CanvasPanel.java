@@ -109,8 +109,80 @@ public class CanvasPanel extends JPanel {
 		selectionLoc.setLocation(0, 0);
 		selection = null;
 	}
+	public void deleteSelection() {
+		selectionLoc.setLocation(0, 0);
+		selection = null;
+	}
 	public boolean hasSelection() {
 		return selection != null;
+	}
+	public void ensureHasSelection() {
+		if (hasSelection())
+			return;
+		select(null);
+	}
+	
+	// copy and pasting
+	
+	private BufferedImage clipboard;
+	private Point clipboardPos = new Point();
+	public void copy() {
+		clipboard = Util.deepCopy(getTopLayer().getImage());
+		clipboardPos.setLocation(selectionLoc);
+	}
+	public void cut() {
+		copy();
+		if (hasSelection())
+			deleteSelection();
+		else
+			getTopLayer().clearImage();
+	}
+	public void paste() {
+		if (hasSelection())
+			selection.drawImage(clipboard, getPointOnLayer(Util.difference(clipboardPos, selectionLoc), true, true));
+		else {
+			selection = new Layer(clipboard);
+			selectionLoc.setLocation(clipboardPos);
+		}
+	}
+	public boolean canPaste() {
+		return clipboard != null;
+	}
+	
+	// other operations
+	public void rotate(int quarterTurns) {
+		ensureHasSelection();
+		quarterTurns %= 4;
+		Point center = selection.getMeanPixel();
+		
+		for (int i = 0; i < quarterTurns; i++)
+			selection = selection.rotatedCW();
+		for (int i = 0; i > quarterTurns; i--)
+			selection = selection.rotatedCCW();
+		
+		Point newCenter = selection.getMeanPixel();
+		
+		// transform before taking difference because transform might include a translation
+		var tf = getTransform();
+		tf.transform(center, center);
+		tf.transform(newCenter, newCenter);
+		Point diff = Util.difference(center, newCenter);
+		
+		// move selection location to maintain same center
+		selectionLoc.translate(diff.x, diff.y);
+	}
+	
+	/**
+	 * Reflects the selection or entire sprite across the specified axis.
+	 * @param updown true for up/down, false for left/right
+	 */
+	public void reflect(boolean updown) {
+		ensureHasSelection();
+		
+		if (updown)
+			selection.reflectUpDown();
+		else
+			selection.reflectLeftRight();
 	}
 	
 	/**
@@ -152,12 +224,19 @@ public class CanvasPanel extends JPanel {
 		return layers.get(layers.size() - 1);
 	}
 	
+	public boolean hasLayer() {
+		return !layers.isEmpty();
+	}
+	
 	/**
 	 * Calculates and returns the pixel coordinates of the given point
 	 * @param pointOnScreen a point in the reference frame of this panel
 	 * @return a point in the reference frame of the underlying top Layer, not including the selection which might be floating
 	 */
 	public Point getPointOnLayer(Point pointOnScreen, boolean roundDown, boolean bypassSelection) {
+		if (!hasLayer())
+			return null;
+		
 		// determine which transform to use
 		AffineTransform tf;
 		if (hasSelection() && !bypassSelection)

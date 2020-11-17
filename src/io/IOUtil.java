@@ -4,6 +4,7 @@ import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 
@@ -11,6 +12,14 @@ import canvas.Layer;
 import canvas.Spritesheet;
 
 public class IOUtil {
+	
+	public static final String[] VALID_EXTENSIONS = {"png", "gif", "jpg", "jpeg"};
+	public static boolean isValidExtension(String ext) {
+		for (String s : VALID_EXTENSIONS)
+			if (s.equals(ext))
+				return true;
+		return false;
+	}
 	
 	public static Layer loadLayer(String path) {
 		File file = new File(path);
@@ -31,17 +40,56 @@ public class IOUtil {
 		}
 	}
 	
-	public static void saveSpritesheet(Spritesheet s) {
-		saveSpritesheetAs(s, s.getFile());
+	public static boolean saveSpritesheet(Spritesheet s) {
+		return saveLayerAs(s, s.getFile());
 	}
 	
-	public static void saveSpritesheetAs(Spritesheet s, File file) {
+	@SuppressWarnings("preview")
+	public static boolean saveLayerAs(Layer s, File file) {
 		try {
-			ImageIO.write(s.getImage(), "png", file);
-			s.setFile(file);
+			String name = file.getName();
+			String ext = name.substring(name.lastIndexOf('.') + 1);
+			if (!isValidExtension(ext))
+				throw new RuntimeException("Could not save file as ." + ext);
+			
+			BufferedImage pic = s.getImage();
+			
+			// remove alpha channel for jpgs, gifs
+			if (!ext.equals("png")) {
+				var temp = new BufferedImage(pic.getWidth(),  pic.getHeight(), BufferedImage.TYPE_INT_RGB);
+				var g = temp.createGraphics();
+				g.drawImage(pic, 0, 0, null);
+				g.dispose();
+				pic = temp;
+			}
+			
+			if (ImageIO.write(pic, ext, file)) {
+				if (s instanceof Spritesheet ss)
+					ss.setFile(file);
+				return true;
+			}
+			throw new RuntimeException("Could not save to file: " + file);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		return false;
+	}
+
+	/**
+	 * Saves the given spritesheet to the given file as an animated gif.
+	 * Each nonempty sprite is added the gif in order.
+	 * @param ss the spritesheet
+	 * @param file the file
+	 * @param delay time in milliseconds between frames
+	 */
+	public static void saveImagesAsGIF(List<BufferedImage> images, File file, int delay) {
+		var encoder = new AnimatedGifEncoder();
+		encoder.start(file.getAbsolutePath());
+		encoder.setRepeat(0); // play indefinitely
+		encoder.setDelay(delay);
+		for (var im : images)
+			encoder.addFrame(im);
+		encoder.finish();
 	}
 	
 	
@@ -70,4 +118,5 @@ public class IOUtil {
 			return null;
 		return new Dimension(width, height);
 	}
+
 }
