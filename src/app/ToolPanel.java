@@ -81,11 +81,11 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 		var copyButton = new SimpleButton("Copy", null, e -> app.canvasPanel.copy());
 		var pasteButton = new SimpleButton("Paste", null, e -> {app.canvasPanel.paste(); app.repaintCanvas(); app.saveState();});
 		
-		var undoButton = new SimpleButton("Undo", null, e -> app.undo());
-		var redoButton = new SimpleButton("Redo", null, e -> app.redo());
+		var undoButton = new SimpleButton("Undo", "Z", e -> app.undo());
+		var redoButton = new SimpleButton("Redo", "shift Z", e -> app.redo());
 		
 		GBC toolButtonGBC = new GBC().weight(1,0).fill(GBC.BOTH);
-		GBC sepGBC = new GBC().dim(4, 1).fill(GBC.BOTH).weight(1, 0).insets(0, hpad, 0, hpad);
+		GBC sepGBC = new GBC().dim(4, 1).fill(GBC.BOTH).weight(1, 0).insets(0, hpad, 0, hpad); // GBC for separators
 		int i = 0, j = 0;
 		GBC.addComp(toolButtonPanel::add, i=0, j=0, pencilButton, toolButtonGBC);
 		GBC.addComp(toolButtonPanel::add, ++i, j, eraserButton, toolButtonGBC);
@@ -108,10 +108,15 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 		GBC.addComp(toolButtonPanel::add, i=0, ++j, undoButton, toolButtonGBC);
 		GBC.addComp(toolButtonPanel::add, ++i, j, redoButton, toolButtonGBC);
 		
-		// panels
-		GBC.addComp(this::add, 0, 0, sliderPanel, new GBC().dim(2, 1).insets(pad, pad, hpad, pad).anchor(GBC.SOUTH).fill(GBC.HORIZONTAL).weight(0, 1));
+		// display for which pixel is selected
+		pixelCoordDisplay = new JLabel();
+		updatePixelCoordDisplay(null);
+		
+		// add panels
+		GBC.addComp(this::add, 0, 0, sliderPanel, new GBC().insets(pad, pad, hpad, pad).anchor(GBC.SOUTH).fill(GBC.HORIZONTAL).weight(0, 1));
 		GBC.addComp(this::add, 0, 1, new JSeparator(SwingConstants.HORIZONTAL), new GBC().fill(GBC.HORIZONTAL).weight(1, 0).insets(0, hpad, 0, hpad));
-		GBC.addComp(this::add, 0, 2, toolButtonPanel, new GBC().dim(2, 1).insets(hpad, pad, pad, hpad).fill(GBC.HORIZONTAL).anchor(GBC.NORTH).weight(0, 1));
+		GBC.addComp(this::add, 0, 2, toolButtonPanel, new GBC().insets(hpad, pad, pad, pad).fill(GBC.HORIZONTAL).anchor(GBC.NORTH).weight(0, 1));
+		GBC.addComp(this::add, 0, 3, pixelCoordDisplay, new GBC().insets(hpad, pad, pad, pad).fill(GBC.HORIZONTAL).anchor(GBC.SOUTH).weight(0, 1));
 		app.lockSizeAfterPack(() -> sliderPanel.setPreferredSize(sliderPanel.getSize()));
 		
 		// initial tool
@@ -148,6 +153,7 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 	private final LabeledSlider sizeSlider;
 	private final JLabel strengthText = new JLabel("Alpha:");
 	private final JLabel sizeText = new JLabel("Diameter:");
+	private final JLabel pixelCoordDisplay;
 	
 	private final Enabler enabler = new Enabler();
 
@@ -160,6 +166,13 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 	
 	public int getToolSize() {
 		return sizeSlider.getValue();
+	}
+	
+	private void updatePixelCoordDisplay(Point pixel) {
+		if (pixel == null)
+			pixelCoordDisplay.setText("Pixel coordinates: none");
+		else
+			pixelCoordDisplay.setText("Pixel coordinates: (%d, %d)".formatted(pixel.x+1, pixel.y+1));
 	}
 	
 	
@@ -216,18 +229,22 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 
 	@Override
 	public void mouseDragged(MouseEvent e) {
-		if (canUseTool() && handleToolUse(currentTB.tool.drag(getActiveLayer(), getPointOnCanvas(e), getToolParams(e))))
-				e.consume();
+		Point pixel = getPointOnCanvas(e);
+		updatePixelCoordDisplay(pixel);
+		if (canUseTool() && handleToolUse(currentTB.tool.drag(getActiveLayer(), pixel, getToolParams(e))))
+			e.consume();
 	}
 	@Override
 	public void mouseMoved(MouseEvent e) {
-		if (canUseTool() && handleToolUse(currentTB.tool.move(getActiveLayer(), getPointOnCanvas(e), getToolParams(e))))
-				e.consume();
+		Point pixel = getPointOnCanvas(e);
+		updatePixelCoordDisplay(pixel);
+		if (canUseTool() && handleToolUse(currentTB.tool.move(getActiveLayer(), pixel, getToolParams(e))))
+			e.consume();
 	}
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		if (canUseTool() && handleToolUse(currentTB.tool.click(getActiveLayer(), getPointOnCanvas(e), getToolParams(e))))
-				e.consume();
+			e.consume();
 	}
 	@Override
 	public void mousePressed(MouseEvent e) {
@@ -246,6 +263,7 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 	}
 	@Override
 	public void mouseExited(MouseEvent e) { 
+		updatePixelCoordDisplay(null);
 		if (canUseTool() && handleToolUse(currentTB.tool.exit(getActiveLayer(), getPointOnCanvas(e), getToolParams(e))))
 			e.consume();
 	}
@@ -313,6 +331,7 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 			}
 			if (hasNextAlpha() && tool.hasAlpha()) {
 				tool.currentStrength = nextAlpha;
+				nextAlpha = NO_NEXT_ALPHA;
 			}
 				
 			

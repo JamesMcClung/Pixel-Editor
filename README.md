@@ -2,6 +2,20 @@
 
 ## Changelog
 
+### 0.6.1
+
+#### Features
+- coordinates of pixel now shown on bottom left
+- added hotkeys for undo and redo
+
+#### Changes
+- smooth tool applies once per pixel
+- warp and smooth tool minimum strength is now 1
+
+#### Bug Fixes
+- smooth seems to favor darker shades
+- eyedropper sets all future alphas, not just the next one
+
 ### 0.6
 
 #### Features

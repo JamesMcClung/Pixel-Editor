@@ -10,6 +10,7 @@ public class Warper extends StrokeBrush {
 		super();
 		strengthName = "Percent";
 		maxStrength = 100;
+		minStrength = 1;
 		currentStrength = 25;
 	}
 	

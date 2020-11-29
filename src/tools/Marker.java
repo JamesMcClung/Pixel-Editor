@@ -11,7 +11,7 @@ public class Marker extends Brush {
 	
 	@Override
 	public ToolResult press(Layer l, Point pixel, ToolParams params) {
-		lastPoint.setLocation(-1, -1);
+		lastPoint.setLocation(-1, -1); // to ensure that it is drawn on
 		return super.press(l, pixel, params);
 	}
 

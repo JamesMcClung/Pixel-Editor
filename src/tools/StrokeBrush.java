@@ -8,7 +8,7 @@ import canvas.Layer;
 
 public abstract class StrokeBrush extends Brush {
 	
-	private final HashSet<Point> pixelsInStroke = new HashSet<>(); // so same pixels  are not doubly erased
+	private final HashSet<Point> pixelsInStroke = new HashSet<>(); // so same pixels are not doubly affected
 	
 	@Override
 	public ToolResult press(Layer l, Point pixel, ToolParams params) {
