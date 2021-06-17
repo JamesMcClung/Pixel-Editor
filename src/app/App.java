@@ -322,7 +322,7 @@ public class App {
 			exportMenuItem.addActionListener(this::exportAction);
 			
 			var exportAnimatedMenuItem = new JMenuItem("Export GIF");
-			exportAnimatedMenuItem.addActionListener(this::exportAnimated);
+			exportAnimatedMenuItem.addActionListener(this::exportAnimatedAction);
 			
 			// add file menu items
 			fileMenu.add(newMenuItem);
@@ -346,11 +346,15 @@ public class App {
 			reflectLRButton.addActionListener(e -> {canvasPanel.reflect(false); repaintCanvas(); saveState();});
 			var reflectUDButton = new JMenuItem("Flip Up-Down");
 			reflectUDButton.addActionListener(e -> {canvasPanel.reflect(true); repaintCanvas(); saveState();});
+			var reduceNColorsButton = new JMenuItem("Reduce # Colors");
+			reduceNColorsButton.addActionListener(this::reduceNColorsAction);
 			
 			editMenu.add(rotateCCWButton);
 			editMenu.add(rotateCWButton);
 			editMenu.add(reflectLRButton);
 			editMenu.add(reflectUDButton);
+			editMenu.addSeparator();
+			editMenu.add(reduceNColorsButton);
 			
 			// View Menu
 			JMenu viewMenu = new JMenu("View");
@@ -385,7 +389,7 @@ public class App {
 			Enabler.Condition isSavedSpritesheet = () -> spritesheetManager.getCurrentSheet().getFile() != null;
 			enabler.add(saveAsMenuItem::setEnabled, isSpritesheet);
 			enabler.add(saveMenuItem::setEnabled, isSpritesheet, isSavedSpritesheet);
-			enabler.add(App.this.canvasPanel::hasLayer, rotateCWButton::setEnabled, rotateCCWButton::setEnabled, reflectLRButton::setEnabled, reflectUDButton::setEnabled, exportMenuItem::setEnabled, exportAnimatedMenuItem::setEnabled);
+			enabler.add(App.this.canvasPanel::hasLayer, rotateCWButton::setEnabled, rotateCCWButton::setEnabled, reflectLRButton::setEnabled, reflectUDButton::setEnabled, reduceNColorsButton::setEnabled, exportMenuItem::setEnabled, exportAnimatedMenuItem::setEnabled);
 		}
 		
 		// Fields
@@ -424,6 +428,14 @@ public class App {
 	        }
 		}
 
+		private void reduceNColorsAction(ActionEvent e) {
+			var rncp = new ReduceNColorsPanel();
+			int result = JOptionPane.showConfirmDialog(null, rncp, "Reduce Number of Colors", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+			if (result == JOptionPane.OK_OPTION) {
+				rncp.doReduce();
+			}
+		}
+		
 		private void exportAction(ActionEvent e) {
 			var ep = new ExportPanel();
 			int result = JOptionPane.showConfirmDialog(null, ep, "Export", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
@@ -436,7 +448,7 @@ public class App {
 		 * Exports the spritesheet as an animated gif
 		 * @param e not used
 		 */
-		private void exportAnimated(ActionEvent e) {
+		private void exportAnimatedAction(ActionEvent e) {
 			var eap = new ExportAnimatedPanel();
 			int result = JOptionPane.showConfirmDialog(null, eap, "Export as Animation", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 			if (result == JFileChooser.APPROVE_OPTION) {
@@ -600,6 +612,54 @@ public class App {
 				heightLabel.setText("" + size.height);
 			}
 			
+		}
+		
+		/**
+		 * Panel handling the reduction of number of colors in the image. 
+		 */
+		private class ReduceNColorsPanel extends JPanel {
+			private static final long serialVersionUID = -457791697346635272L;
+
+			private ReduceNColorsPanel() {
+				super(new GridBagLayout());
+				
+				var group = new ButtonGroup();
+				group.add(entireSpriteButton);
+				group.add(selectionOnlyButton);
+				entireSpriteButton.setSelected(true);
+				selectionOnlyButton.setEnabled(canvasPanel.hasSelection());
+				
+				group = new ButtonGroup();
+				group.add(rgbButton);
+				group.add(hsbButton);
+				hsbButton.setSelected(true);
+				
+				GBC.addComp(this::add, 0, 0, new JLabel("Number of colors:"), new GBC().anchor(GBC.EAST).dim(1, 3));
+				GBC.addComp(this::add, 1, 0, inputField, new GBC().anchor(GBC.WEST).dim(1, 3).insets(0, hpad, 0, pad));
+				
+				GBC.addComp(this::add, 2, 0, new JLabel("Region to reduce:"), new GBC().anchor(GBC.SOUTHWEST));
+				GBC.addComp(this::add, 2, 1, selectionOnlyButton, new GBC().anchor(GBC.WEST));
+				GBC.addComp(this::add, 2, 2, entireSpriteButton, new GBC().anchor(GBC.WEST));
+				
+				GBC.addComp(this::add, 3, 0, new JLabel("Method to reduce:"), new GBC().anchor(GBC.SOUTHWEST));
+				GBC.addComp(this::add, 3, 1, rgbButton, new GBC().anchor(GBC.WEST));
+				GBC.addComp(this::add, 3, 2, hsbButton, new GBC().anchor(GBC.WEST));
+			}
+			
+			private final JTextField inputField = new JTextField(3);
+			private final JRadioButton selectionOnlyButton = new JRadioButton("Selection only");
+			private final JRadioButton entireSpriteButton = new JRadioButton("Entire sprite");
+			private final JRadioButton rgbButton = new JRadioButton("RGB");
+			private final JRadioButton hsbButton = new JRadioButton("HSB");
+			
+			public void doReduce() {
+				if (selectionOnlyButton.isSelected())
+					Layer.reduceNColors(Integer.parseInt(inputField.getText()), rgbButton.isSelected(), canvasPanel.getSelection());
+				else
+					Layer.reduceNColors(Integer.parseInt(inputField.getText()), rgbButton.isSelected(), canvasPanel.getLayers(false));
+				saveState();
+				repaintCanvas();
+			}
 		}
 		
 	}

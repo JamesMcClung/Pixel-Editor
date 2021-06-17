@@ -110,7 +110,7 @@ public class Util {
 	}
 
 	// color used for background tiling
-	public static Color tileColor1 = Color.WHITE, tileColor2 = new Color(220, 220, 220);
+	public static Color tileColor1 = new Color(245, 245, 245), tileColor2 = new Color(220, 220, 220);
 	/**
 	 * Creates a texture for the background. The texture is like a chess board, with tiles of the given dimension.
 	 * @param tileSize dimension of tile, in pixels

@@ -6,9 +6,7 @@ import java.awt.image.BufferedImage;
 
 import canvas.Layer;
 
-public class Smoother extends Brush {
-	
-	private final Point lastPoint = new Point(-1, -1);
+public class Smoother extends OPPBrush {
 	
 	public Smoother() {
 		super();
@@ -21,17 +19,7 @@ public class Smoother extends Brush {
 	
 
 	@Override
-	public ToolResult press(Layer l, Point pixel, ToolParams params) {
-		lastPoint.setLocation(-1, -1); // to ensure that it is drawn on
-		return super.press(l, pixel, params);
-	}
-
-	@Override
-	protected void applyBrush(Layer l, Point pixel, ToolParams params) {
-		if (lastPoint.equals(pixel)) {
-			return;
-		}
-		lastPoint.setLocation(pixel);
+	protected void drawStroke(Layer l, Point pixel, ToolParams params) {
 		Color c = Eyedropper.getAverageColor(l, pixel, currentSize);
 		l.doThingInCircle(pixel, currentSize / 2d, (im, p) -> bringToColor(im, p, c));
 	}

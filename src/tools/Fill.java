@@ -5,11 +5,11 @@ import java.awt.Point;
 
 import canvas.Layer;
 
-public class Bucket extends Tool {
+public class Fill extends Tool {
 	
-	public Bucket() {
+	public Fill() {
 		super();
-		hasStrength = false;
+//		hasStrength = false;
 		sizeName = "Search Diameter";
 		minSize = currentSize = 2;
 	}

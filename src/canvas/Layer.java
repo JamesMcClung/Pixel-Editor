@@ -11,6 +11,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 import util.Cache;
@@ -25,6 +26,152 @@ public class Layer implements BitMask {
 	
 
 	public static final Color ERASE_COLOR = new Color(255, 255, 255, 0); 
+	
+	/**
+	 * Reduces the number of colors in the given layers to the given number.
+	 * K-means is used. Colors are compared as vectors of either r,g,b components or h,s,b components.
+	 * @param nColors number of distinct colors after reduction
+	 * @param rgbOrHsb true to use RGB representation, false to use HSB
+	 * @param layers layers to change
+	 */
+	public static void reduceNColors(int nColors, boolean rgbOrHsb, Layer...layers) {
+		Point pix = new Point();
+		var random = new Random();
+		
+		// make list of all colors to pick from randomly
+		List<Integer> allColors = new ArrayList<Integer>();
+		
+		for (Layer l : layers) {
+			for (pix.x = 0; pix.x < l.getWidth(); pix.x++) {
+				for (pix.y = 0; pix.y < l.getHeight(); pix.y++) {
+					int rgb = l.getRGB(pix);
+					if (Util.a(rgb) != 0 && !allColors.contains(rgb)) {
+						allColors.add(rgb);
+					}
+				}
+			}
+		}
+		
+		
+		// initialize lists
+		List<ArrayList<Integer>> rgbsInGroup = new ArrayList<>(nColors);
+		int[] rgbMeans = new int[nColors];
+		
+		for (int index = 0; index < nColors; index++) {
+			rgbsInGroup.add(new ArrayList<Integer>());
+			
+			if (allColors.isEmpty())
+				throw new RuntimeException("Cannot reduce %d colors down to %d".formatted(index, nColors));
+			int colorIndex = random.nextInt(allColors.size());
+			rgbMeans[index] = allColors.remove(colorIndex);
+		}
+		
+		// perform k-means
+		final int nEpochs = 10;
+		
+		for (int epoch = 0; epoch < nEpochs; epoch++) {
+			// clear groups
+			for (int index = 0; index < nColors; index++) {
+				rgbsInGroup.get(index).clear();
+			}
+			
+			// recreate groups
+			for (Layer l : layers) {
+				for (pix.x = 0; pix.x < l.getWidth(); pix.x++) {
+					for (pix.y = 0; pix.y < l.getHeight(); pix.y++) {
+						int rgb = l.getRGB(pix);
+						if (Util.a(rgb) == 0)
+							continue;
+						
+						// find which group to put the rgb value in
+						double minDist = Double.MAX_VALUE;
+						int minDistIndex = -1;
+						
+						for (int index = 0; index < nColors; index++) {
+							double dist = rgbOrHsb ? getColorDistRGB(rgb, rgbMeans[index]) : getColorDistHSB(rgb, rgbMeans[index]);
+							if (dist < minDist) {
+								minDist = dist;
+								minDistIndex = index;
+							}
+						}
+						
+						rgbsInGroup.get(minDistIndex).add(rgb);
+					}
+				}
+			}
+			
+			// recalculate means
+			float[] hsb = new float[3];
+			for (int index = 0; index < nColors; index++) {
+				if (rgbOrHsb) {
+					int rsum = 0, bsum = 0, gsum = 0;
+					var group = rgbsInGroup.get(index);
+					
+					for (int rgb : group) {
+						rsum += Util.r(rgb);
+						bsum += Util.b(rgb);
+						gsum += Util.g(rgb);
+					}
+					rgbMeans[index] = Util.argb(255, rsum / group.size(), gsum / group.size(), bsum / group.size());
+				} else {
+					float[] sums = new float[hsb.length];
+					var group = rgbsInGroup.get(index);
+					
+					for (int rgb : group) {
+						Color.RGBtoHSB(Util.r(rgb), Util.g(rgb), Util.b(rgb), hsb);
+						for (int i = 0; i < hsb.length; i++)
+							sums[i] += hsb[i];
+					}
+					rgbMeans[index] = Color.HSBtoRGB(sums[0] / group.size(), sums[1] / group.size(), sums[2] / group.size());
+				}
+			}
+		}
+		
+		// set colors to closest means
+		for (Layer l : layers) {
+			for (pix.x = 0; pix.x < l.getWidth(); pix.x++) {
+				for (pix.y = 0; pix.y < l.getHeight(); pix.y++) {
+					// find which group to set the rgb value to
+					int rgb = l.getRGB(pix);
+					if (Util.a(rgb) == 0)
+						continue;
+					
+					double minDist = Double.MAX_VALUE;
+					int minDistIndex = -1;
+					
+					for (int index = 0; index < nColors; index++) {
+						double dist = rgbOrHsb ? getColorDistRGB(rgb, rgbMeans[index]) : getColorDistHSB(rgb, rgbMeans[index]);
+						if (dist < minDist) {
+							minDist = dist;
+							minDistIndex = index;
+						}
+					}
+					int meanRGB = rgbMeans[minDistIndex];
+					l.setPixel(pix, Util.argb(Util.a(rgb), Util.r(meanRGB), Util.g(meanRGB), Util.b(meanRGB)));
+				}
+			}
+		}
+	}
+	private static double getColorDistRGB(int rgb1, int rgb2) {
+		// method 1: treat rgb as vector with dimensions r, g, b
+		int dr = Util.r(rgb1) - Util.r(rgb2);
+		int dg = Util.g(rgb1) - Util.g(rgb2);
+		int db = Util.b(rgb1) - Util.b(rgb2);
+		return Math.sqrt(dr*dr + dg*dg + db*db);
+	}
+	private static final float[] hsb1 = new float[3], hsb2 = new float[3]; 
+	private static double getColorDistHSB(int rgb1, int rgb2) {
+		// method 1: treat rgb as vector with dimensions r, g, b
+		Color.RGBtoHSB(Util.r(rgb1), Util.g(rgb1), Util.b(rgb1), hsb1);
+		Color.RGBtoHSB(Util.r(rgb2), Util.g(rgb2), Util.b(rgb2), hsb2);
+		float dh = Math.min(Math.abs(hsb1[0] - hsb2[0]), Math.abs(hsb2[0] - hsb1[0])); // hue is cyclic
+		float ds = hsb1[1] - hsb2[1];
+		float db = hsb1[2] - hsb2[2];
+		return Math.sqrt(dh*dh + ds*ds + db*db);
+	}
+	
+	
+	// constructors
 	
 	/**
 	 * A Layer is a grid of pixels that can be drawn on, rendered to the display, etc.
@@ -103,6 +250,15 @@ public class Layer implements BitMask {
 		if (isInBounds(pixel))
 			image.setRGB(pixel.x, pixel.y, color.getRGB());
 	}
+	/**
+	 * Sets the rgb value of the given pixel. Ignores out-of-bounds pixels.
+	 * @param pixel pixel to set color of
+	 * @param rgb the color
+	 */
+	public void setPixel(Point pixel, int rgb) {
+		if (isInBounds(pixel))
+			image.setRGB(pixel.x, pixel.y, rgb);
+	}
 	
 	/**
 	 * Sets the color values of each pixel within the given radius of the given point.
@@ -168,24 +324,27 @@ public class Layer implements BitMask {
 	 * @param style either {@link #RENDER_TILES}, {@link #RENDER_WHITE}, or {@link #RENDER_TRANSPARENT}.
 	 */
 	public void renderAt(Graphics2D g, AffineTransform tf, int style) {
-		g = (Graphics2D) g.create();
-		g.transform(tf);
+		var g2 = (Graphics2D) g.create();
+		g2.transform(tf);
 		switch(style) {
 		case RENDER_TILES:
-			g.setPaint(backgroundPaint.get(backgroundTileDim));
-			g.fillRect(0, 0, getWidth(), getHeight());
+			var g3 = (Graphics2D) g2.create();
+			g3.scale(.5, .5);
+			g3.setPaint(backgroundPaint.get(backgroundTileDim));
+			g3.fillRect(0, 0, getWidth() * 2, getHeight() * 2);
+			g3.dispose();
 			break;
 		case RENDER_WHITE:
-			g.setColor(Color.WHITE);
-			g.fillRect(0, 0, getWidth(), getHeight());
+			g2.setColor(Color.WHITE);
+			g2.fillRect(0, 0, getWidth(), getHeight());
 			break;
 		case RENDER_TRANSPARENT:
 			break;
 		default:	
 			throw new IllegalArgumentException("Invalid style: " + style);
 		}
-		g.drawImage(getImage(), 0, 0, null);
-		g.dispose();
+		g2.drawImage(getImage(), 0, 0, null);
+		g2.dispose();
 	}
 	
 	/**

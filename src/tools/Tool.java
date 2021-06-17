@@ -74,10 +74,11 @@ public abstract class Tool {
 		return new Color(c.getRGB() & (alpha << 24 | 0xffffff), true);
 	}
 	
-	@SuppressWarnings("preview")
+	/**
+	 * A null value indicates that the tool was not used. Any other value, even {@link Tool#DO_NOTHING}, will at least update enableds. 
+	 */
 	public static record ToolResult(int command) { }
 	
-	@SuppressWarnings("preview")
 	public static record ToolParams(Color color, App app, MouseEvent e) {
 		public Color fadedColor(int strength) {
 			return getFadedColor(color, strength);

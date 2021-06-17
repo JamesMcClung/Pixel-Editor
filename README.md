@@ -2,6 +2,11 @@
 
 ## Changelog
 
+### 0.7.0
+
+#### Features
+- color reducer in the edit tab
+
 ### 0.6.1
 
 #### Features
