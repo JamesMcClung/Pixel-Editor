@@ -38,7 +38,7 @@ public class CanvasPanel extends JPanel {
 	
 	private int renderStyle = initialRenderStyle;
 	
-	private ArrayList<Layer> layers = new ArrayList<>();
+	final ArrayList<Layer> layers = new ArrayList<>();
 	private Layer selection = null;
 	private final Point selectionLoc = new Point();
 	
@@ -92,6 +92,9 @@ public class CanvasPanel extends JPanel {
 	}
 	public Point getSelectionLoc() {
 		return new Point(selectionLoc);
+	}
+	public Layer getSelection() {
+		return selection;
 	}
 	public void snapSelectionToGrid() {
 		var tf = getTopLayer(true).getTransform(new Point(), getSize());
@@ -226,6 +229,23 @@ public class CanvasPanel extends JPanel {
 	
 	public boolean hasLayer() {
 		return !layers.isEmpty();
+	}
+	
+	/**
+	 * Creates and returns an array of all the layers, in order, with the selection at the end.
+	 * @param includeSelection whether or not to include the selection
+	 * @return the array
+	 */
+	public Layer[] getLayers(boolean includeSelection) {
+		includeSelection = includeSelection && hasSelection();
+		Layer[] ls = new Layer[layers.size() + (includeSelection ? 1 : 0)];
+		
+		layers.toArray(ls);
+		
+		if (includeSelection)
+			ls[ls.length-1] = selection;
+		
+		return ls;
 	}
 	
 	/**
