@@ -39,7 +39,7 @@ public class SpritesheetManager extends JPanel {
 
 		setLayout(new GridBagLayout());
 
-		playTimer = new Timer(1000 / initialFPS, e -> nextSprite());
+		playTimer = new Timer(1000 / initialFPS, _ -> nextSprite());
 
 		// preview panel
 		previewPanel = new PreviewPanel();
@@ -48,23 +48,23 @@ public class SpritesheetManager extends JPanel {
 		var buttonPanel = new JPanel(new GridBagLayout());
 
 		playButton = new JButton("Play");
-		playButton.addActionListener(e -> togglePlay());
+		playButton.addActionListener(_ -> togglePlay());
 
 		var fpsSlider = new JSlider(1, 20, initialFPS);
 		fpsSlider.setMinorTickSpacing(1);
 		fpsSlider.setPaintTicks(true);
 		fpsSlider.setSnapToTicks(true);
 		fpsSlider.setFocusable(false);
-		fpsSlider.addChangeListener(e -> playTimer.setDelay(1000 / fpsSlider.getValue()));
+		fpsSlider.addChangeListener(_ -> playTimer.setDelay(1000 / fpsSlider.getValue()));
 		fpsSlider.setPreferredSize(playButton.getPreferredSize());
 
 		var lbutton = new JButton("<");
-		lbutton.addActionListener(e -> prevSprite());
+		lbutton.addActionListener(_ -> prevSprite());
 		var rbutton = new JButton(">");
-		rbutton.addActionListener(e -> nextSprite());
+		rbutton.addActionListener(_ -> nextSprite());
 
 		var clearButton = new JButton("Clear");
-		clearButton.addActionListener((e) -> clearSprite());
+		clearButton.addActionListener(_ -> clearSprite());
 
 		int pad = -Constants.pad / 2 * 0; // tinker with this
 		int hpad = pad / 2;
@@ -77,7 +77,7 @@ public class SpritesheetManager extends JPanel {
 		// Text fields
 		var textPanel = new JPanel(new GridBagLayout());
 		int ncols = 2;
-		ActionListener al = (e) -> {
+		ActionListener al = _ -> {
 			Dimension dim = getTextSpriteDim();
 			if (adjustSpriteDim(dim))
 				setTextSpriteDim(dim);

@@ -325,7 +325,7 @@ public class App {
 			saveAsMenuItem.addActionListener(this::saveAsAction);
 
 			var quitMenuItem = new JMenuItem("Quit");
-			quitMenuItem.addActionListener((e) -> quit());
+			quitMenuItem.addActionListener(_ -> quit());
 
 			var exportMenuItem = new JMenuItem("Export...");
 			exportMenuItem.addActionListener(this::exportAction);
@@ -348,25 +348,25 @@ public class App {
 			JMenu editMenu = new JMenu("Edit");
 
 			var rotateCCWButton = new JMenuItem("Rotate Left");
-			rotateCCWButton.addActionListener(e -> {
+			rotateCCWButton.addActionListener(_ -> {
 				canvasPanel.rotate(-1);
 				repaintCanvas();
 				saveState();
 			});
 			var rotateCWButton = new JMenuItem("Rotate Right");
-			rotateCWButton.addActionListener(e -> {
+			rotateCWButton.addActionListener(_ -> {
 				canvasPanel.rotate(1);
 				repaintCanvas();
 				saveState();
 			});
 			var reflectLRButton = new JMenuItem("Flip Left-Right");
-			reflectLRButton.addActionListener(e -> {
+			reflectLRButton.addActionListener(_ -> {
 				canvasPanel.reflect(false);
 				repaintCanvas();
 				saveState();
 			});
 			var reflectUDButton = new JMenuItem("Flip Up-Down");
-			reflectUDButton.addActionListener(e -> {
+			reflectUDButton.addActionListener(_ -> {
 				canvasPanel.reflect(true);
 				repaintCanvas();
 				saveState();
@@ -386,11 +386,11 @@ public class App {
 			ButtonGroup group = new ButtonGroup();
 
 			var tilesButton = new JRadioButtonMenuItem("Tiles");
-			tilesButton.addActionListener((e) -> canvasPanel.setRenderStyle(Layer.RENDER_TILES));
+			tilesButton.addActionListener(_ -> canvasPanel.setRenderStyle(Layer.RENDER_TILES));
 			group.add(tilesButton);
 
 			var whiteButton = new JRadioButtonMenuItem("White");
-			whiteButton.addActionListener((e) -> canvasPanel.setRenderStyle(Layer.RENDER_WHITE));
+			whiteButton.addActionListener(_ -> canvasPanel.setRenderStyle(Layer.RENDER_WHITE));
 			group.add(whiteButton);
 
 			var selectedButton = switch (CanvasPanel.initialRenderStyle) {
@@ -544,8 +544,8 @@ public class App {
 				var scaleBox = new JPanel(new GridBagLayout());
 				scaleXField = new JTextField("1", 2);
 				scaleYField = new JTextField("1", 2);
-				scaleXField.addActionListener(e -> updateDimLabels());
-				scaleYField.addActionListener(e -> updateDimLabels());
+				scaleXField.addActionListener(_ -> updateDimLabels());
+				scaleYField.addActionListener(_ -> updateDimLabels());
 
 				GBC.addComp(scaleBox::add, 0, 0, new JLabel("Scale x:"), new GBC().anchor(GBC.EAST).weight(1, 0));
 				GBC.addComp(scaleBox::add, 1, 0, scaleXField, new GBC().anchor(GBC.WEST).weight(1, 0));
@@ -573,12 +573,12 @@ public class App {
 				var exportOptionGroup = new ButtonGroup();
 
 				var selectionOption = new JRadioButton("Selection");
-				selectionOption.addActionListener(e -> setPreviewLayer(canvasPanel.getTopLayer(false).shrinkwrapped()));
+				selectionOption.addActionListener(_ -> setPreviewLayer(canvasPanel.getTopLayer(false).shrinkwrapped()));
 				selectionOption.setEnabled(canvasPanel.hasSelection());
 				var spriteOption = new JRadioButton("Sprite");
-				spriteOption.addActionListener(e -> setPreviewLayer(canvasPanel.getTopLayer(true)));
+				spriteOption.addActionListener(_ -> setPreviewLayer(canvasPanel.getTopLayer(true)));
 				var spritesheetOption = new JRadioButton("Spritesheet");
-				spritesheetOption.addActionListener(e -> setPreviewLayer(spritesheetManager.getCurrentSheet()));
+				spritesheetOption.addActionListener(_ -> setPreviewLayer(spritesheetManager.getCurrentSheet()));
 
 				exportOptionGroup.add(selectionOption);
 				exportOptionGroup.add(spriteOption);

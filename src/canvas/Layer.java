@@ -275,7 +275,7 @@ public class Layer implements BitMask {
 	 * @param color   the color
 	 */
 	public void setPixels(Point center, double radius, Color color) {
-		doThingInCircle(center, radius, (image, pixel) -> setPixel(pixel, color));
+		doThingInCircle(center, radius, (_, pixel) -> setPixel(pixel, color));
 	}
 
 	public void setPixels(Point x0, PixelMask mask, Color color) {
@@ -422,7 +422,7 @@ public class Layer implements BitMask {
 		PixelMask explored = new PixelMask(getSize());
 		Set<Point> frontier1 = new HashSet<>(), frontier2 = new HashSet<>();
 		mask.set(pixel, true);
-		PixelMask.Condition condition = (p, rgb2) -> {
+		PixelMask.Condition condition = (_, rgb2) -> {
 			for (Integer rgb : rgbs)
 				if (Util.rgbEqual(rgb, rgb2))
 					return true;

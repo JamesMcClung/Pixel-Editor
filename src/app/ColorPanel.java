@@ -61,7 +61,7 @@ public class ColorPanel extends JPanel {
 		// swatches
 		currentColor = new ColorSwatch(initialColor);
 		prevColor = new FixedColorSwatch();
-		currentColor.addColorListener((c) -> prevColor.setColor(currentColor.color));
+		currentColor.addColorListener(_ -> prevColor.setColor(currentColor.color));
 
 		GBC.addComp(swatchPanel::add, 0, 0, new JLabel("Current"), new GBC().insets(pad, pad, 0, pad));
 		GBC.addComp(swatchPanel::add, 0, 1, currentColor, new GBC().insets(0, pad, hpad, pad));

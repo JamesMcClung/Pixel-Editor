@@ -55,8 +55,8 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 		strengthSlider = new LabeledSlider(0, 255, 255);
 		sizeSlider = new LabeledSlider(1, 50, 1);
 		// make sure tool buttons remember their sizes and strengths
-		strengthSlider.addChangeListener(e -> currentTB.tool.currentStrength = strengthSlider.getValue());
-		sizeSlider.addChangeListener(e -> currentTB.tool.currentSize = sizeSlider.getValue());
+		strengthSlider.addChangeListener(_ -> currentTB.tool.currentStrength = strengthSlider.getValue());
+		sizeSlider.addChangeListener(_ -> currentTB.tool.currentSize = sizeSlider.getValue());
 
 		GBC.addComp(sliderPanel::add, 0, 0, strengthText, new GBC().anchor(GBC.EAST).weight(.5, 0));
 		GBC.addComp(sliderPanel::add, 1, 0, strengthSlider.label, new GBC().insets(0, hpad, 0, hpad).weight(.25, 0));
@@ -79,31 +79,31 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 		var smudgeButton = new ToolButton("Smudge", new Smudger(), "M");
 		var colorSelectButton = new ToolButton("CSelect", new ColorSelector(), "C");
 		var boxSelectButton = new ToolButton("BSelect", new BoxSelector(), "B");
-		var dropButton = new SimpleButton("Drop", "ENTER", e -> {
+		var dropButton = new SimpleButton("Drop", "ENTER", _ -> {
 			app.canvasPanel.dropSelection();
 			app.repaintCanvas();
 			app.saveState();
 		});
 		var dragButton = new ToolButton("Drag", new Dragger(), "D");
-		var deleteButton = new SimpleButton("Delete", "BACK_SPACE", e -> {
+		var deleteButton = new SimpleButton("Delete", "BACK_SPACE", _ -> {
 			app.canvasPanel.deleteSelection();
 			app.repaintCanvas();
 			app.saveState();
 		});
-		var cutButton = new SimpleButton("Cut", null, e -> {
+		var cutButton = new SimpleButton("Cut", null, _ -> {
 			app.canvasPanel.cut();
 			app.repaintCanvas();
 			app.saveState();
 		});
-		var copyButton = new SimpleButton("Copy", null, e -> app.canvasPanel.copy());
-		var pasteButton = new SimpleButton("Paste", null, e -> {
+		var copyButton = new SimpleButton("Copy", null, _ -> app.canvasPanel.copy());
+		var pasteButton = new SimpleButton("Paste", null, _ -> {
 			app.canvasPanel.paste();
 			app.repaintCanvas();
 			app.saveState();
 		});
 
-		var undoButton = new SimpleButton("Undo", "Z", e -> app.undo());
-		var redoButton = new SimpleButton("Redo", "shift Z", e -> app.redo());
+		var undoButton = new SimpleButton("Undo", "Z", _ -> app.undo());
+		var redoButton = new SimpleButton("Redo", "shift Z", _ -> app.redo());
 
 		GBC toolButtonGBC = new GBC().weight(1, 0).fill(GBC.BOTH);
 		GBC sepGBC = new GBC().dim(4, 1).fill(GBC.BOTH).weight(1, 0).insets(0, hpad, 0, hpad); // GBC for separators
@@ -159,12 +159,12 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 		enabler.add(app.canvasPanel::canPaste, pasteButton::setEnabled);
 
 		// key bindings
-		Util.addKeyBinding(this, "UP", e -> {
+		Util.addKeyBinding(this, "UP", _ -> {
 			int str = sizeSlider.getValue();
 			sizeSlider.setValue(str + 1);
 			sendMoveEvent(currentTB.tool);
 		});
-		Util.addKeyBinding(this, "DOWN", e -> {
+		Util.addKeyBinding(this, "DOWN", _ -> {
 			int str = sizeSlider.getValue();
 			sizeSlider.setValue(str - 1);
 			sendMoveEvent(currentTB.tool);
