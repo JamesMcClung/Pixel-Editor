@@ -7,7 +7,7 @@ import java.awt.Point;
 import java.awt.geom.AffineTransform;
 
 import myawt.Line;
-import util.XORSet;
+import util.XorSet;
 
 public interface BitMask {
 
@@ -34,7 +34,7 @@ public interface BitMask {
 	 * @param c  color of outline
 	 */
 	public static void renderOutline(Graphics2D g, BitMask b, AffineTransform tf, Color c) {
-		XORSet<Line> lines = new XORSet<>();
+		XorSet<Line> lines = new XorSet<>();
 		for (int i = 0; i < b.getWidth(); i++) {
 			for (int j = 0; j < b.getHeight(); j++) {
 				if (b.get(i, j)) {

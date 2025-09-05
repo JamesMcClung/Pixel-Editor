@@ -2,7 +2,7 @@ package util;
 
 import java.util.HashSet;
 
-public class XORSet<E> extends HashSet<E> {
+public class XorSet<E> extends HashSet<E> {
 	private static final long serialVersionUID = 6850192137074966506L;
 
 	/**
