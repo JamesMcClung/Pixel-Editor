@@ -10,10 +10,8 @@ public class Constants {
 	/**
 	 * pad/2
 	 */
-	public static final int hpad = pad/2;
-	
-	
-	
+	public static final int hpad = pad / 2;
+
 	public static final Color selectionOutline = Color.BLUE;
 	public static final Color preselectionOutline = new Color(0, 255, 255);
 	public static final Color toolOutline = new Color(0, 255, 0);

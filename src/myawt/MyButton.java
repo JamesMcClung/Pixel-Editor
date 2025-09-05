@@ -11,11 +11,11 @@ public abstract class MyButton extends JButton implements ActionListener {
 
 	public MyButton(String name, String hotkey) {
 		super(name);
-		
+
 		addActionListener(this);
-		
+
 		if (hotkey != null)
 			Util.addKeyBinding(this, hotkey, this);
 	}
-	
+
 }

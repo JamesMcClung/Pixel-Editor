@@ -11,16 +11,17 @@ import java.util.List;
 
 public class Memory implements Serializable {
 	private static final long serialVersionUID = -5014472746949786889L;
-	
+
 	public static final String PATH_TO_MEMORY = "res/memory.ser";
-	
+
 	/**
 	 * The stored memory, e.g. saved color palettes.
 	 */
 	public static final Memory memory = getMemory();
-	
+
 	/**
 	 * Loads and the Memory in memory.
+	 * 
 	 * @return the memory
 	 */
 	private static Memory getMemory() {
@@ -36,20 +37,20 @@ public class Memory implements Serializable {
 		}
 		return null;
 	}
-	
+
 	// no other classes can instantiate a memory
-	private Memory() { }
-	
-	
+	private Memory() {
+	}
+
 	// Fields (all public)
-	
+
 	public final List<ColorPalette> colorPalettes = new ArrayList<>();
-	
-	
+
 	// methods
-	
+
 	/**
 	 * Returns a saved color palette, or if none exist, a new color palette of the given dimensions.
+	 * 
 	 * @param rows number of rows in created palette
 	 * @param cols number of columns in created palette
 	 * @return the palette
@@ -60,7 +61,7 @@ public class Memory implements Serializable {
 		}
 		return colorPalettes.get(0);
 	}
-	
+
 	public void save() throws IOException {
 		ObjectOutputStream oos = null;
 		try {

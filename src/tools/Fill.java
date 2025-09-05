@@ -6,16 +6,16 @@ import java.awt.Point;
 import canvas.Layer;
 
 public class Fill extends Tool {
-	
+
 	public Fill() {
 		super();
-//		hasStrength = false;
+		// hasStrength = false;
 		sizeName = "Search Diameter";
 		minSize = currentSize = 2;
 	}
-	
+
 	public void fill(Layer l, Point pixel, Color color) {
-		l.setPixels(new Point(), l.getMonochromeRegion(pixel, Math.max(1, currentSize/2d), null), color);
+		l.setPixels(new Point(), l.getMonochromeRegion(pixel, Math.max(1, currentSize / 2d), null), color);
 	}
 
 	@Override

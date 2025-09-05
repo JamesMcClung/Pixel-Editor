@@ -10,7 +10,7 @@ public class MyDefaultListModel<E> extends AbstractListModel<E> {
 	public MyDefaultListModel(List<E> list) {
 		this.list = list;
 	}
-	
+
 	private final List<E> list;
 
 	@Override
@@ -22,12 +22,12 @@ public class MyDefaultListModel<E> extends AbstractListModel<E> {
 	public E getElementAt(int index) {
 		return list.get(index);
 	}
-	
+
 	public void addElement(E element) {
 		list.add(element);
 		fireIntervalAdded(this, list.size(), list.size());
 	}
-	
+
 	public void removeIndex(int i) {
 		list.remove(i);
 		this.fireIntervalRemoved(this, i, i);
