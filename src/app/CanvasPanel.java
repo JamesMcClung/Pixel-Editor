@@ -388,6 +388,5 @@ public class CanvasPanel extends JPanel {
 		return stateImages;
 	}
 	
-	@SuppressWarnings("preview")
 	public record State(Layer[] layers, BufferedImage[] images, boolean hadSelection, BufferedImage selection, Point selectionLoc) { }
 }

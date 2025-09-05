@@ -44,7 +44,6 @@ public class IOUtil {
 		return saveLayerAs(s, s.getFile());
 	}
 	
-	@SuppressWarnings("preview")
 	public static boolean saveLayerAs(Layer s, File file) {
 		try {
 			String name = file.getName();

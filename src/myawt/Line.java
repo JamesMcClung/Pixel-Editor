@@ -9,7 +9,6 @@ public class Line extends Line2D.Float {
 		super(x1, y1, x2, y2);
 	}
 
-	@SuppressWarnings("preview")
 	@Override
 	public boolean equals(Object other) {
 		if (other instanceof Line l)

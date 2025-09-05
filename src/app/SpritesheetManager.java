@@ -335,7 +335,6 @@ public class SpritesheetManager extends JPanel {
 		return new State(currentSheet, currentSheet.getActiveSpriteIndex(), currentSheet.getSpriteDim());
 	}
 	
-	@SuppressWarnings("preview")
 	public static record State(Spritesheet spritesheet, Point spriteIndex, Dimension spriteSize) { }
 
 }

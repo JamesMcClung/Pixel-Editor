@@ -313,7 +313,6 @@ public class ToolPanel extends JPanel implements MouseListener, MouseMotionListe
 			setBackground(selectedColor);
 		}
 		
-		@SuppressWarnings("preview")
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			ToolButton lastTB = currentTB;

@@ -1,6 +1,5 @@
 package app;
 
-@SuppressWarnings("preview")
 public record SaveableState(CanvasPanel.State canvasState, SpritesheetManager.State ssmState, boolean isTransient) { 
 	
 	public SaveableState(CanvasPanel.State canvasState, SpritesheetManager.State ssmState) {
