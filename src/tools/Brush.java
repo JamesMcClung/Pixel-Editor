@@ -5,11 +5,12 @@ import java.awt.Point;
 import canvas.Layer;
 
 public abstract class Brush extends CircleTool {
-	
+
 	/**
 	 * Called when a pixel is pressed or dragged over.
-	 * @param l layer of pixel
-	 * @param pixel pixel
+	 * 
+	 * @param l      layer of pixel
+	 * @param pixel  pixel
 	 * @param params params
 	 */
 	protected abstract void applyBrush(Layer l, Point pixel, ToolParams params);
@@ -31,6 +32,5 @@ public abstract class Brush extends CircleTool {
 		applyBrush(l, pixel, params);
 		return new ToolResult(REPAINT);
 	}
-	
 
 }

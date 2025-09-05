@@ -9,11 +9,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-
 // from http://www.java2s.com/Code/Java/2D-Graphics-GUI/AnimatedGifEncoder.htm
 /**
- * Class AnimatedGifEncoder - Encodes a GIF file consisting of one or more
- * frames.
+ * Class AnimatedGifEncoder - Encodes a GIF file consisting of one or more frames.
  * 
  * <pre>
  *  Example:
@@ -25,14 +23,12 @@ import java.io.OutputStream;
  *     e.finish();
  * </pre>
  * 
- * No copyright asserted on the source code of this class. May be used for any
- * purpose, however, refer to the Unisys LZW patent for restrictions on use of
- * the associated LZWEncoder class. Please forward any corrections to
+ * No copyright asserted on the source code of this class. May be used for any purpose, however, refer to the Unisys LZW
+ * patent for restrictions on use of the associated LZWEncoder class. Please forward any corrections to
  * kweiner@fmsware.com.
  * 
  * @author Kevin Weiner, FM Software
  * @version 1.03 November 2003
- * 
  */
 
 public class AnimatedGifEncoder {
@@ -78,23 +74,19 @@ public class AnimatedGifEncoder {
 	protected int sample = 10; // default sample interval for quantizer
 
 	/**
-	 * Sets the delay time between each frame, or changes it for subsequent frames
-	 * (applies to last frame added).
+	 * Sets the delay time between each frame, or changes it for subsequent frames (applies to last frame added).
 	 * 
-	 * @param ms
-	 *          int delay time in milliseconds
+	 * @param ms int delay time in milliseconds
 	 */
 	public void setDelay(int ms) {
 		delay = Math.round(ms / 10.0f);
 	}
 
 	/**
-	 * Sets the GIF frame disposal code for the last added frame and any
-	 * subsequent frames. Default is 0 if no transparent color has been set,
-	 * otherwise 2.
+	 * Sets the GIF frame disposal code for the last added frame and any subsequent frames. Default is 0 if no
+	 * transparent color has been set, otherwise 2.
 	 * 
-	 * @param code
-	 *          int disposal code.
+	 * @param code int disposal code.
 	 */
 	public void setDispose(int code) {
 		if (code >= 0) {
@@ -103,12 +95,10 @@ public class AnimatedGifEncoder {
 	}
 
 	/**
-	 * Sets the number of times the set of GIF frames should be played. Default is
-	 * 1; 0 means play indefinitely. Must be invoked before the first image is
-	 * added.
+	 * Sets the number of times the set of GIF frames should be played. Default is 1; 0 means play indefinitely. Must be
+	 * invoked before the first image is added.
 	 * 
-	 * @param iter
-	 *          int number of iterations.
+	 * @param iter int number of iterations.
 	 * @return
 	 */
 	public void setRepeat(int iter) {
@@ -118,28 +108,22 @@ public class AnimatedGifEncoder {
 	}
 
 	/**
-	 * Sets the transparent color for the last added frame and any subsequent
-	 * frames. Since all colors are subject to modification in the quantization
-	 * process, the color in the final palette for each frame closest to the given
-	 * color becomes the transparent color for that frame. May be set to null to
-	 * indicate no transparent color.
+	 * Sets the transparent color for the last added frame and any subsequent frames. Since all colors are subject to
+	 * modification in the quantization process, the color in the final palette for each frame closest to the given
+	 * color becomes the transparent color for that frame. May be set to null to indicate no transparent color.
 	 * 
-	 * @param c
-	 *          Color to be treated as transparent on display.
+	 * @param c Color to be treated as transparent on display.
 	 */
 	public void setTransparent(Color c) {
 		transparent = c;
 	}
 
 	/**
-	 * Adds next GIF frame. The frame is not written immediately, but is actually
-	 * deferred until the next frame is received so that timing data can be
-	 * inserted. Invoking <code>finish()</code> flushes all frames. If
-	 * <code>setSize</code> was not invoked, the size of the first image is used
-	 * for all subsequent frames.
+	 * Adds next GIF frame. The frame is not written immediately, but is actually deferred until the next frame is
+	 * received so that timing data can be inserted. Invoking <code>finish()</code> flushes all frames. If
+	 * <code>setSize</code> was not invoked, the size of the first image is used for all subsequent frames.
 	 * 
-	 * @param im
-	 *          BufferedImage containing frame to write.
+	 * @param im BufferedImage containing frame to write.
 	 * @return true if successful.
 	 */
 	public boolean addFrame(BufferedImage im) {
@@ -178,8 +162,7 @@ public class AnimatedGifEncoder {
 	}
 
 	/**
-	 * Flushes any pending data and closes output file. If writing to an
-	 * OutputStream, the stream is not closed.
+	 * Flushes any pending data and closes output file. If writing to an OutputStream, the stream is not closed.
 	 */
 	public boolean finish() {
 		if (!started)
@@ -210,11 +193,9 @@ public class AnimatedGifEncoder {
 	}
 
 	/**
-	 * Sets frame rate in frames per second. Equivalent to
-	 * <code>setDelay(1000/fps)</code>.
+	 * Sets frame rate in frames per second. Equivalent to <code>setDelay(1000/fps)</code>.
 	 * 
-	 * @param fps
-	 *          float frame rate (frames per second)
+	 * @param fps float frame rate (frames per second)
 	 */
 	public void setFrameRate(float fps) {
 		if (fps != 0f) {
@@ -223,14 +204,12 @@ public class AnimatedGifEncoder {
 	}
 
 	/**
-	 * Sets quality of color quantization (conversion of images to the maximum 256
-	 * colors allowed by the GIF specification). Lower values (minimum = 1)
-	 * produce better colors, but slow processing significantly. 10 is the
-	 * default, and produces good color mapping at reasonable speeds. Values
-	 * greater than 20 do not yield significant improvements in speed.
+	 * Sets quality of color quantization (conversion of images to the maximum 256 colors allowed by the GIF
+	 * specification). Lower values (minimum = 1) produce better colors, but slow processing significantly. 10 is the
+	 * default, and produces good color mapping at reasonable speeds. Values greater than 20 do not yield significant
+	 * improvements in speed.
 	 * 
-	 * @param quality
-	 *          int greater than 0.
+	 * @param quality int greater than 0.
 	 * @return
 	 */
 	public void setQuality(int quality) {
@@ -240,13 +219,10 @@ public class AnimatedGifEncoder {
 	}
 
 	/**
-	 * Sets the GIF frame size. The default size is the size of the first frame
-	 * added if this method is not invoked.
+	 * Sets the GIF frame size. The default size is the size of the first frame added if this method is not invoked.
 	 * 
-	 * @param w
-	 *          int frame width.
-	 * @param h
-	 *          int frame width.
+	 * @param w int frame width.
+	 * @param h int frame width.
 	 */
 	public void setSize(int w, int h) {
 		if (started && !firstFrame)
@@ -261,11 +237,9 @@ public class AnimatedGifEncoder {
 	}
 
 	/**
-	 * Initiates GIF file creation on the given stream. The stream is not closed
-	 * automatically.
+	 * Initiates GIF file creation on the given stream. The stream is not closed automatically.
 	 * 
-	 * @param os
-	 *          OutputStream on which GIF images are written.
+	 * @param os OutputStream on which GIF images are written.
 	 * @return false if initial write failed.
 	 */
 	public boolean start(OutputStream os) {
@@ -285,8 +259,7 @@ public class AnimatedGifEncoder {
 	/**
 	 * Initiates writing of a GIF file with the specified name.
 	 * 
-	 * @param file
-	 *          String containing output file name.
+	 * @param file String containing output file name.
 	 * @return false if open or initial write failed.
 	 */
 	public boolean start(String file) {
@@ -336,7 +309,6 @@ public class AnimatedGifEncoder {
 
 	/**
 	 * Returns index of palette color closest to c
-	 * 
 	 */
 	protected int findClosest(Color c) {
 		if (colorTab == null)
@@ -502,24 +474,15 @@ public class AnimatedGifEncoder {
 }
 
 /*
- * NeuQuant Neural-Net Quantization Algorithm
- * ------------------------------------------
- * 
- * Copyright (c) 1994 Anthony Dekker
- * 
- * NEUQUANT Neural-Net quantization algorithm by Anthony Dekker, 1994. See
- * "Kohonen neural networks for optimal colour quantization" in "Network:
- * Computation in Neural Systems" Vol. 5 (1994) pp 351-367. for a discussion of
- * the algorithm.
- * 
- * Any party obtaining a copy of these files from the author, directly or
- * indirectly, is granted, free of charge, a full and unrestricted irrevocable,
- * world-wide, paid up, royalty-free, nonexclusive right and license to deal in
- * this software and documentation files (the "Software"), including without
- * limitation the rights to use, copy, modify, merge, publish, distribute,
- * sublicense, and/or sell copies of the Software, and to permit persons who
- * receive copies from any such party to do so, with the only requirement being
- * that this copyright notice remain intact.
+ * NeuQuant Neural-Net Quantization Algorithm ------------------------------------------ Copyright (c) 1994 Anthony
+ * Dekker NEUQUANT Neural-Net quantization algorithm by Anthony Dekker, 1994. See
+ * "Kohonen neural networks for optimal colour quantization" in "Network: Computation in Neural Systems" Vol. 5 (1994)
+ * pp 351-367. for a discussion of the algorithm. Any party obtaining a copy of these files from the author, directly or
+ * indirectly, is granted, free of charge, a full and unrestricted irrevocable, world-wide, paid up, royalty-free,
+ * nonexclusive right and license to deal in this software and documentation files (the "Software"), including without
+ * limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons who receive copies from any such party to do so, with the only requirement being that
+ * this copyright notice remain intact.
  */
 
 // Ported to Java 12/00 K Weiner
@@ -542,11 +505,9 @@ class NeuQuant {
 	/* minimum size for input image */
 
 	/*
-	 * Program Skeleton ---------------- [select samplefac in range 1..30] [read
-	 * image from input file] pic = (unsigned char*) malloc(3*width*height);
-	 * initnet(pic,3*width*height,samplefac); learn(); unbiasnet(); [write output
-	 * image header, using writecolourmap(f)] inxbuild(); write output image using
-	 * inxsearch(b,g,r)
+	 * Program Skeleton ---------------- [select samplefac in range 1..30] [read image from input file] pic = (unsigned
+	 * char*) malloc(3*width*height); initnet(pic,3*width*height,samplefac); learn(); unbiasnet(); [write output image
+	 * header, using writecolourmap(f)] inxbuild(); write output image using inxsearch(b,g,r)
 	 */
 
 	/*
@@ -576,19 +537,16 @@ class NeuQuant {
 
 	/* defs for decreasing radius factor */
 	protected static final int initrad = (netsize >> 3); /*
-	 * for 256 cols, radius
-	 * starts
-	 */
+															 * for 256 cols, radius starts
+															 */
 
 	protected static final int radiusbiasshift = 6; /* at 32.0 biased by 6 bits */
 
 	protected static final int radiusbias = (((int) 1) << radiusbiasshift);
 
 	protected static final int initradius = (initrad * radiusbias); /*
-	 * and
-	 * decreases
-	 * by a
-	 */
+																	 * and decreases by a
+																	 */
 
 	protected static final int radiusdec = 30; /* factor of 1/30 each cycle */
 
@@ -673,8 +631,7 @@ class NeuQuant {
 	}
 
 	/*
-	 * Insertion sort of network and building of netindex[0..255] (to do after
-	 * unbias)
+	 * Insertion sort of network and building of netindex[0..255] (to do after unbias)
 	 * -------------------------------------------------------------------------------
 	 */
 	public void inxbuild() {
@@ -724,8 +681,8 @@ class NeuQuant {
 			}
 		}
 		netindex[previouscol] = (startpos + maxnetpos) >> 1;
-				for (j = previouscol + 1; j < 256; j++)
-					netindex[j] = maxnetpos; /* really 256 */
+		for (j = previouscol + 1; j < 256; j++)
+			netindex[j] = maxnetpos; /* really 256 */
 	}
 
 	/*
@@ -794,10 +751,10 @@ class NeuQuant {
 				alpha -= alpha / alphadec;
 				radius -= radius / radiusdec;
 				rad = radius >> radiusbiasshift;
-			if (rad <= 1)
-				rad = 0;
-			for (j = 0; j < rad; j++)
-				radpower[j] = alpha * (((rad * rad - j * j) * radbias) / (rad * rad));
+				if (rad <= 1)
+					rad = 0;
+				for (j = 0; j < rad; j++)
+					radpower[j] = alpha * (((rad * rad - j * j) * radbias) / (rad * rad));
 			}
 		}
 		// fprintf(stderr,"finished 1D learning: final alpha=%f
@@ -805,8 +762,7 @@ class NeuQuant {
 	}
 
 	/*
-	 * Search for BGR values 0..255 (after net is unbiased) and return colour
-	 * index
+	 * Search for BGR values 0..255 (after net is unbiased) and return colour index
 	 * ----------------------------------------------------------------------------
 	 */
 	public int map(int b, int g, int r) {
@@ -883,26 +839,24 @@ class NeuQuant {
 	}
 
 	/*
-	 * Unbias network to give byte values 0..255 and record position i to prepare
-	 * for sort
+	 * Unbias network to give byte values 0..255 and record position i to prepare for sort
 	 * -----------------------------------------------------------------------------------
 	 */
 	public void unbiasnet() {
 
-		//    int i, j;
+		// int i, j;
 		int i;
 
 		for (i = 0; i < netsize; i++) {
 			network[i][0] >>= netbiasshift;
-		network[i][1] >>= netbiasshift;
-						network[i][2] >>= netbiasshift;
-					network[i][3] = i; /* record colour no */
+			network[i][1] >>= netbiasshift;
+			network[i][2] >>= netbiasshift;
+			network[i][3] = i; /* record colour no */
 		}
 	}
 
 	/*
-	 * Move adjacent neurons by precomputed alpha*(1-((i-j)^2/[r]^2)) in
-	 * radpower[|i-j|]
+	 * Move adjacent neurons by precomputed alpha*(1-((i-j)^2/[r]^2)) in radpower[|i-j|]
 	 * ---------------------------------------------------------------------------------
 	 */
 	protected void alterneigh(int rad, int i, int b, int g, int r) {
@@ -944,8 +898,7 @@ class NeuQuant {
 	}
 
 	/*
-	 * Move neuron i towards biased (b,g,r) by factor alpha
-	 * ----------------------------------------------------
+	 * Move neuron i towards biased (b,g,r) by factor alpha ----------------------------------------------------
 	 */
 	protected void altersingle(int alpha, int i, int b, int g, int r) {
 
@@ -1104,8 +1057,8 @@ class LZWEncoder {
 
 	int cur_bits = 0;
 
-	int masks[] = { 0x0000, 0x0001, 0x0003, 0x0007, 0x000F, 0x001F, 0x003F, 0x007F, 0x00FF, 0x01FF,
-			0x03FF, 0x07FF, 0x0FFF, 0x1FFF, 0x3FFF, 0x7FFF, 0xFFFF };
+	int masks[] = { 0x0000, 0x0001, 0x0003, 0x0007, 0x000F, 0x001F, 0x003F, 0x007F, 0x00FF, 0x01FF, 0x03FF, 0x07FF,
+			0x0FFF, 0x1FFF, 0x3FFF, 0x7FFF, 0xFFFF };
 
 	// Number of characters so far in this 'packet'
 	int a_count;
@@ -1291,7 +1244,7 @@ class LZWEncoder {
 			while (cur_bits > 0) {
 				char_out((byte) (cur_accum & 0xff), outs);
 				cur_accum >>= 8;
-			cur_bits -= 8;
+				cur_bits -= 8;
 			}
 
 			flush_char(outs);

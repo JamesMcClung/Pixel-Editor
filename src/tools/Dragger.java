@@ -6,7 +6,7 @@ import canvas.Layer;
 import util.Util;
 
 public class Dragger extends Tool {
-	
+
 	public Dragger() {
 		super();
 		hasSize = hasStrength = false;
@@ -20,10 +20,10 @@ public class Dragger extends Tool {
 		} else
 			return null;
 	}
-	
+
 	private final Point initialMouseLoc = new Point();
 	private final Point initialSelectionLoc = new Point();
-	private boolean madeSelection = false;  
+	private boolean madeSelection = false;
 
 	@Override
 	public ToolResult press(Layer l, Point pixel, ToolParams params) {
@@ -46,7 +46,8 @@ public class Dragger extends Tool {
 
 	@Override
 	public ToolResult drag(Layer l, Point pixel, ToolParams params) {
-		params.app().canvasPanel.setSelectionLoc(Util.sum(Util.difference(params.e().getPoint(), initialMouseLoc), initialSelectionLoc));
+		params.app().canvasPanel.setSelectionLoc(
+				Util.sum(Util.difference(params.e().getPoint(), initialMouseLoc), initialSelectionLoc));
 		return new ToolResult(Tool.REPAINT);
 	}
 
