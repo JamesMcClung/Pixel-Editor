@@ -9,10 +9,13 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.JFileChooser;
+
 public class Memory implements Serializable {
 	private static final long serialVersionUID = -5014472746949786889L;
 
-	public static final String PATH_TO_MEMORY = "res/memory.ser";
+	public static final String PATH_TO_MEMORY = new JFileChooser().getFileSystemView().getHomeDirectory()
+			.getAbsolutePath() + "/Library/Application Support/PixelEditor/memory.ser";
 
 	/**
 	 * The stored memory, e.g. saved color palettes.
