@@ -52,10 +52,25 @@ public class App {
 	public static final String title = "Pixel Editor";
 
 	public static void main(String[] args) {
-		var app = new App();
+		Spritesheet spritesheet = null;
+
 		if (args.length == 1) {
 			var file = new File(args[0]);
-			app.setSpritesheet(IOUtil.loadSpritesheet(file));
+			try {
+				spritesheet = IOUtil.loadSpritesheet(file);
+			} catch (IOException e) {
+				System.out.printf("Attempted to open %s, but the file does not exist\n", file.toString());
+				System.exit(1);
+			}
+		} else if (args.length > 1) {
+			System.out
+					.println("Too many arguments. Only one argument is allowed: an optional path to an image to edit.");
+			System.exit(1);
+		}
+
+		var app = new App();
+		if (spritesheet != null) {
+			app.setSpritesheet(spritesheet);
 		}
 	}
 
@@ -432,12 +447,16 @@ public class App {
 
 		// Methods
 
-		private void openAction(ActionEvent e) {
+		private void openAction(ActionEvent event) {
 			int result = fileChooser.showOpenDialog(frame);
 
 			if (result == JFileChooser.APPROVE_OPTION) {
 				File file = fileChooser.getSelectedFile();
-				setSpritesheet(IOUtil.loadSpritesheet(file));
+				try {
+					setSpritesheet(IOUtil.loadSpritesheet(file));
+				} catch (IOException e) {
+					throw new RuntimeException(e.getMessage());
+				}
 			}
 		}
 
