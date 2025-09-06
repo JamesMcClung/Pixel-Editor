@@ -47,7 +47,7 @@ public class ColorPanel extends JPanel {
 		void colorChanged(Color newColor);
 	}
 
-	public static final int paletteCols = 8, paletetRows = 3;
+	public static final int paletteCols = 8, paletteRows = 3;
 
 	public ColorPanel() {
 		setLayout(new GridBagLayout());
@@ -55,7 +55,7 @@ public class ColorPanel extends JPanel {
 
 		// panels
 		colorMakerPanel = new ColorMakerPanel();
-		colorPalettePanel = new ColorPalettePanel(Memory.memory.getPaletteOrDefault(paletetRows, paletteCols));
+		colorPalettePanel = new ColorPalettePanel(Memory.memory.getPaletteOrDefault(paletteRows, paletteCols));
 		JPanel swatchPanel = new JPanel(new GridBagLayout());
 
 		// swatches
@@ -251,7 +251,7 @@ public class ColorPanel extends JPanel {
 			}
 
 			private void newPalette(ActionEvent e) {
-				listModel.addElement(new ColorPalette(paletetRows, paletteCols));
+				listModel.addElement(new ColorPalette(paletteRows, paletteCols));
 				list.setSelectedIndex(listModel.getSize() - 1);
 			}
 
