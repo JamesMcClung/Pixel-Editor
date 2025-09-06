@@ -59,22 +59,24 @@ public class App {
 
 	public App() {
 		frame = new JFrame(title);
-		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // handled by quit method
 		frame.setLayout(new GridBagLayout());
 
 		// prevent resizing to below minimum size
 		frame.addComponentListener(new ComponentAdapter() {
 			@Override
 			public void componentResized(ComponentEvent e) {
-				Dimension d = frame.getSize();
-				Dimension minD = frame.getMinimumSize();
-				if (d.width < minD.width)
-					d.width = minD.width;
-				if (d.height < minD.height)
-					d.height = minD.height;
-				frame.setSize(d);
+				Dimension new_size = frame.getSize();
+
+				Dimension min_size = frame.getMinimumSize();
+				new_size.width = Math.max(new_size.width, min_size.width);
+				new_size.height = Math.max(new_size.height, min_size.height);
+
+				frame.setSize(new_size);
 			}
 		});
+
+		// handle closing the program
+		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		frame.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
