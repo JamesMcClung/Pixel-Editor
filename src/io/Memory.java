@@ -48,6 +48,7 @@ public class Memory implements Serializable {
 	// Fields (all public)
 
 	public final List<ColorPalette> colorPalettes = new ArrayList<>();
+	public int activeIndex = 0;
 
 	// methods
 
@@ -62,7 +63,7 @@ public class Memory implements Serializable {
 		if (colorPalettes.isEmpty()) {
 			colorPalettes.add(new ColorPalette(default_n_rows, default_n_cols));
 		}
-		return colorPalettes.get(0);
+		return colorPalettes.get(activeIndex);
 	}
 
 	public void save() throws IOException {
