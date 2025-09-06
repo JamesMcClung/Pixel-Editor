@@ -55,7 +55,7 @@ public class App {
 		var app = new App();
 		if (args.length == 1) {
 			var file = new File(args[0]);
-			app.setSpritesheet(IOUtil.loadSpritesheat(file));
+			app.setSpritesheet(IOUtil.loadSpritesheet(file));
 		}
 	}
 
@@ -437,7 +437,7 @@ public class App {
 
 			if (result == JFileChooser.APPROVE_OPTION) {
 				File file = fileChooser.getSelectedFile();
-				setSpritesheet(IOUtil.loadSpritesheat(file));
+				setSpritesheet(IOUtil.loadSpritesheet(file));
 			}
 		}
 

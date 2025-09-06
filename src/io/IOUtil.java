@@ -32,7 +32,7 @@ public class IOUtil {
 		}
 	}
 
-	public static Spritesheet loadSpritesheat(File file) {
+	public static Spritesheet loadSpritesheet(File file) {
 		try {
 			return new Spritesheet(file, ImageIO.read(file));
 		} catch (IOException e) {
