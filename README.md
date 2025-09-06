@@ -2,6 +2,14 @@
 
 ## Changelog
 
+### 0.7.1
+
+#### Additions
+- Pass an image path as a command-line argument to edit that file
+
+#### Fixes
+- Closing and reopening the app no longer resets which color palette was in use
+
 ### 0.7.0
 
 #### Additions
