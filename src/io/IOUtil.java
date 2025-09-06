@@ -32,13 +32,13 @@ public class IOUtil {
 		}
 	}
 
-	public static Spritesheet loadSpritesheat(File file) {
-		try {
-			return new Spritesheet(file, ImageIO.read(file));
-		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
-		}
+	public static Spritesheet loadSpritesheet(File file) throws IOException {
+		return new Spritesheet(file, ImageIO.read(file));
+		// try {
+		// } catch (IOException e) {
+		// e.printStackTrace();
+		// return null;
+		// }
 	}
 
 	public static boolean saveSpritesheet(Spritesheet s) {
