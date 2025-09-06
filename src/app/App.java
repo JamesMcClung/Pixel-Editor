@@ -52,7 +52,11 @@ public class App {
 	public static final String title = "Pixel Editor";
 
 	public static void main(String[] args) {
-		new App();
+		var app = new App();
+		if (args.length == 1) {
+			var file = new File(args[0]);
+			app.setSpritesheet(IOUtil.loadSpritesheat(file));
+		}
 	}
 
 	// constructors
