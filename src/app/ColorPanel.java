@@ -164,13 +164,15 @@ public class ColorPanel extends JPanel {
 		 * @return the panel
 		 */
 		private JPanel makeInnerPanel(ColorPalette palette) {
-			int rows = palette.getRows(), cols = palette.getCols();
+			int rows = palette.getRows();
+			int cols = palette.getCols();
 			JPanel panel = new JPanel(new GridLayout(rows, cols, -1, -1));
 
 			var swatches = new ColorSwatch[rows][cols];
 			for (int i = 0; i < rows; i++) {
 				for (int j = 0; j < cols; j++) {
-					final int y = i, x = j;
+					final int x = j;
+					final int y = i;
 					swatches[i][j] = new ColorSwatch(palette.colors[i][j]) {
 						private static final long serialVersionUID = -9140800990816388643L;
 
@@ -188,11 +190,12 @@ public class ColorPanel extends JPanel {
 		}
 
 		private void openPaletteEditor(ActionEvent e) {
-			var pep = new PaletteEditorPanel();
-			int result = JOptionPane.showConfirmDialog(null, pep, "Edit Color Palettes", JOptionPane.OK_CANCEL_OPTION,
-					JOptionPane.PLAIN_MESSAGE);
+			var editor = new PaletteEditorPanel();
+			int result = JOptionPane.showConfirmDialog(null, editor, "Edit Color Palettes",
+					JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 			if (result == JOptionPane.OK_OPTION) {
-				setColorPalette(pep.list.getSelectedValue());
+				Memory.memory.activeIndex = editor.list.getSelectedIndex();
+				setColorPalette(editor.list.getSelectedValue());
 				repaint();
 			}
 		}
