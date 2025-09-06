@@ -4,114 +4,101 @@
 
 ### 0.7.0
 
-#### Features
-- color reducer in the edit tab
+#### Additions
+- Color reducer in the "edit" tab
 
 ### 0.6.1
 
-#### Features
-- coordinates of pixel now shown on bottom left
-- added hotkeys for undo and redo
+#### Additions
+- Coordinates of pixel now shown on bottom left
+- Added hotkeys for undo and redo
 
 #### Changes
-- smooth tool applies once per pixel
-- warp and smooth tool minimum strength is now 1
+- Smooth tool applies once per pixel
+- Warp and smooth tool minimum strength is now 1
 
-#### Bug Fixes
-- smooth seems to favor darker shades
-- eyedropper sets all future alphas, not just the next one
+#### Fixes
+- Smooth no longer favors darker shades
+- Eyedropper sets all future alphas, not just the next one
 
-### 0.6
+### 0.6.0
 
-#### Features
-- cut, copy, paste, and delete selections
-- rotate selection in quarter turns
-- reflect selection
-- export sprite, selection, or spritesheet
-- export as animated gif
+#### Additions
+- Cut, copy, paste, and delete selections
+- Rotate selection in quarter turns
+- Reflect selection
+- Export sprite, selection, or spritesheet
+- Export as animated gif
 
-#### Bug Fixes
-- crash when selecting tool while no layer is present
-- stack overflow when using color select on too big a region
-- marker did not respect alpha
-- could not save images as jpg/jpeg
+#### Fixes
+- Crash when selecting tool while no layer is present
+- Stack overflow when using color select on too big a region
+- Marker did not respect alpha
+- Could not save images as jpg/jpeg
 
 ### 0.5.1
 
-#### Features
-- erase respects tool strength
-- press enter to drop selection
+#### Additions
+- Eraser respects tool strength
+- Press "enter" to drop selection
 
 #### Changes
-- warp tool does not rewarp pixels from same stroke
-- pencil can mix with colors below if alpha is low
+- Warp tool does not rewarp pixels from same stroke
+- Pencil can mix with colors below if alpha is low
 
-#### Bug Fixes
-- switching tools with hotkeys no longer causes visual bugs
-- fixed marker
-- eyedropper did not work properly
+#### Fixes
+- Switching tools with hotkeys no longer causes visual bugs
+- Fixed marker
+- Eyedropper did not work properly
 
-### 0.5
+### 0.5.0
 
-#### Features
-
-- warp tool
-- hue tool
-- smooth tool
-- hotkeys to select tools
-- arrow keys to resize tools
+#### Additions
+- Warp tool
+- Hue tool
+- Smooth tool
+- Hotkeys for selecting and resizing tools
 
 #### Changes
+- Eyedropper averages color over region, weighted by alpha
+- Current tool is highlighted
+- Tools show region they will affect
 
-- eyedropper averages color over region, weighted by alpha
-- current tool is highlighted
-- tools show region they will affect
+#### Fixes
+- Alpha and size were not reset properly when switching tools
 
-#### Bug Fixes
+### 0.4.0
 
-- alpha and size were not reset properly when switching tools
+#### Additions
+- Drag tool
+- Fill tool
+- Color selection tool
+- Box selection tool
 
-#### Internal Changes
+### 0.3.0
 
-- restructured tools
+#### Additions
+- Cut, copy, and paste
+- "Play" button to animate sprite
 
+### 0.2.0
 
-### 0.4
+#### Additions
+- Eyedropper tool
 
-#### Features
+#### Changes
+- Pencil is now default tool
 
-- drag tool to drag sprites and selections
-- fill tool
-- color selection
-- box selection
+#### Fixes
+- Pencil and eraser now respect size
+- Drawing out of bounds no longer throws error
 
-### 0.3
+### 0.1.0
 
-#### Features
+#### Additions
+- Undo and redo
+- White background "view" option
 
-- cut, copy, and paste sprites
-- play button
-
-### 0.2
-
-#### Features
-
-- added eyedropper tool
-- pencil is now default tool
-
-#### Bug Fixes
-
-- pencil and eraser now respect size
-- drawing out of bounds no longer throws error
-
-### 0.1
-
-#### Features
-
-- Undo and redo buttons
-- White background for editor
-
-#### Bug Fixes
-
-- bounding frame in spritesheet preview was wrong size
-- background tiling/fill rendered incorrectly
+#### Fixes
+- Bounding frame in spritesheet preview was wrong size
+- Background tiling/fill rendered incorrectly
