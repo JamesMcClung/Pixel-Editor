@@ -52,15 +52,15 @@ public class Memory implements Serializable {
 	// methods
 
 	/**
-	 * Returns a saved color palette, or if none exist, a new color palette of the given dimensions.
+	 * Returns a saved color palette, or if none exists, a new color palette of the given dimensions.
 	 * 
-	 * @param n_rows number of rows in created palette
-	 * @param n_cols number of columns in created palette
+	 * @param default_n_rows number of rows in created palette
+	 * @param default_n_cols number of columns in created palette
 	 * @return the palette
 	 */
-	public ColorPalette getDefaultPalette(int n_rows, int n_cols) {
+	public ColorPalette getPaletteOrDefault(int default_n_rows, int default_n_cols) {
 		if (colorPalettes.isEmpty()) {
-			colorPalettes.add(new ColorPalette(n_rows, n_cols));
+			colorPalettes.add(new ColorPalette(default_n_rows, default_n_cols));
 		}
 		return colorPalettes.get(0);
 	}

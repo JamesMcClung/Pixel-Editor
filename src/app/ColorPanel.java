@@ -55,7 +55,7 @@ public class ColorPanel extends JPanel {
 
 		// panels
 		colorMakerPanel = new ColorMakerPanel();
-		colorPalettePanel = new ColorPalettePanel(Memory.memory.getDefaultPalette(paletetRows, paletteCols));
+		colorPalettePanel = new ColorPalettePanel(Memory.memory.getPaletteOrDefault(paletetRows, paletteCols));
 		JPanel swatchPanel = new JPanel(new GridBagLayout());
 
 		// swatches
